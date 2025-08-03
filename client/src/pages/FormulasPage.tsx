@@ -44,6 +44,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 import { Formula } from "@/types";
@@ -207,9 +208,12 @@ export default function FormulasPage() {
   // Mutation to delete formulas
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest(`/api/formulas/${id}`, { 
-        method: "DELETE" 
-      });
+      const { error } = await supabase
+        .from('formulas')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/formulas"] });
@@ -231,8 +235,8 @@ export default function FormulasPage() {
   const filteredFormulas = formulas?.filter((formula) => {
     const search = searchTerm.toLowerCase();
     const matchesSearch = (
-      formula.pinyinName?.toLowerCase().includes(search) || 
-      formula.chineseName?.toLowerCase().includes(search) ||
+      formula.pinyin_name?.toLowerCase().includes(search) || 
+      formula.chinese_name?.toLowerCase().includes(search) ||
       (formula.category?.toLowerCase().includes(search) || false)
     );
 
@@ -404,11 +408,11 @@ export default function FormulasPage() {
                               <div className="flex items-center gap-1.5">
                                 <div>
                                   <h3 className={`font-medium truncate ${isWindColdFormula ? 'text-blue-600' : 'text-gray-900'}`}>
-                                    {formula.pinyinName}
+                                    {formula.pinyin_name}
                                   </h3>
-                                  {formula.englishName && (
+                                  {formula.english_name && (
                                     <div className="text-xs text-gray-400 italic truncate">
-                                      {formula.englishName}
+                                      {formula.english_name}
                                     </div>
                                   )}
                                 </div>
@@ -476,11 +480,11 @@ export default function FormulasPage() {
               <DialogTitle className="flex flex-col sm:flex-row sm:items-start gap-2">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-4">
-                    <span className="text-xl font-bold">{previewFormula.pinyinName}</span>
+                    <span className="text-xl font-bold">{previewFormula.pinyin_name}</span>
                     <div className="flex items-center gap-2">
-                      {previewFormula.englishName && (
+                      {previewFormula.english_name && (
                         <span className="text-sm italic text-gray-500 font-medium">
-                          {previewFormula.englishName}
+                          {previewFormula.english_name}
                         </span>
                       )}
                       {previewFormula.category && (

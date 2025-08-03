@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Patient } from "@/types";
+import { supabase } from "@/lib/supabase";
 
 interface PatientSelectorProps {
   onSelectPatient: (patient: Patient) => void;
@@ -41,8 +42,12 @@ export default function PatientSelector({ onSelectPatient, updatePrescriptionNum
       // Obtener prescripciones del paciente para actualizar el número
       if (updatePrescriptionNumber) {
         try {
-          const response = await fetch(`/api/patients/${selectedPatient.id}/prescriptions`);
-          const prescriptions = await response.json();
+          const { data: prescriptions, error } = await supabase
+            .from('prescriptions')
+            .select('*')
+            .eq('patientId', selectedPatient.id);
+          
+          if (error) throw error;
           
           let newNumber = '1';
           if (prescriptions && prescriptions.length > 0) {

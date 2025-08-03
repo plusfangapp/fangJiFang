@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { Link, useLocation } from "wouter";
 import { useSidebar } from "@/lib/sidebar-context";
 import { format } from "date-fns";
@@ -165,20 +166,14 @@ export default function NewPrescriptionPage() {
   // Mutación para crear un nuevo paciente
   const createPatientMutation = useMutation({
     mutationFn: async (patientData: any) => {
-      const response = await fetch('/api/patients', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(patientData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error al crear el paciente');
-      }
-
-      return response.json();
+      const { data, error } = await supabase
+        .from('patients')
+        .insert(patientData)
+        .select()
+        .single();
+      
+      if (error) throw new Error(error.message || 'Error al crear el paciente');
+      return data;
     },
     onSuccess: (newPatient) => {
       // Informamos que el paciente ha sido creado y estamos creando la prescripción
@@ -268,20 +263,14 @@ export default function NewPrescriptionPage() {
   // Mutación para guardar la prescripción
   const savePrescriptionMutation = useMutation({
     mutationFn: async (prescription: any) => {
-      const response = await fetch('/api/prescriptions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(prescription),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Error al guardar la prescripción');
-      }
-
-      return response.json();
+      const { data, error } = await supabase
+        .from('prescriptions')
+        .insert(prescription)
+        .select()
+        .single();
+      
+      if (error) throw new Error(error.message || 'Error al guardar la prescripción');
+      return data;
     },
     onSuccess: (data) => {
       toast({

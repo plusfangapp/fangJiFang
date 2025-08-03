@@ -36,9 +36,9 @@ export default function HerbsPage() {
   const filteredHerbs = herbs.filter((herb: any) => {
     const matchesSearch =
       searchQuery === "" ||
-      herb.pinyinName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      herb.englishName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      herb.latinName?.toLowerCase().includes(searchQuery.toLowerCase());
+      herb.pinyin_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      herb.english_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      herb.latin_name?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCategory =
       categoryFilter === "" || herb.category === categoryFilter;
@@ -122,12 +122,12 @@ export default function HerbsPage() {
                   <Card key={herb.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-lg">{herb.pinyinName}</h3>
+                        <h3 className="font-semibold text-lg">{herb.pinyin_name}</h3>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <Edit className="h-4 w-4" />
                         </Button>
                       </div>
-                      <p className="text-sm text-muted-foreground">{herb.latinName}</p>
+                      <p className="text-sm text-muted-foreground">{herb.latin_name}</p>
                       {herb.category && (
                         <Badge variant="outline" className="mt-2">
                           {herb.category}

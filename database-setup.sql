@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS herbs (
   biological_effects JSONB,
   clinical_evidence JSONB,
   herb_drug_interactions JSONB,
-  references TEXT[],
+  references_list TEXT[],
   properties TEXT,
   notes TEXT,
   functions TEXT[],
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS formulas (
   pharmacological_effects TEXT,
   research TEXT,
   herb_drug_interactions TEXT,
-  references TEXT[],
+  references_list TEXT[],
   composition JSONB DEFAULT '[]'::jsonb NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

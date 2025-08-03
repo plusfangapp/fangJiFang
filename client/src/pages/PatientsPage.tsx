@@ -25,6 +25,7 @@ import { Search, Users, UserPlus, Edit, Trash2 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Patient } from "@/types";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 
 export default function PatientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,11 +48,14 @@ export default function PatientsPage() {
   // Mutación para crear un nuevo paciente
   const createPatientMutation = useMutation({
     mutationFn: async (patientData: any) => {
-      const response = await apiRequest("/api/patients", {
-        method: "POST",
-        body: JSON.stringify(patientData),
-      });
-      return response;
+      const { data, error } = await supabase
+        .from('patients')
+        .insert(patientData)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit, Search, Plus, Upload, Filter } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 import HerbPreview from "@/components/HerbPreview";
@@ -38,7 +39,12 @@ export default function Herbs() {
   // Delete herb mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest(`/api/herbs/${id}`, { method: "DELETE" });
+      const { error } = await supabase
+        .from('herbs')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/herbs"] });
@@ -63,10 +69,10 @@ export default function Herbs() {
   const filteredHerbs = herbs?.filter((herb: any) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch = (
-      herb.pinyinName?.toLowerCase().includes(searchLower) ||
-      herb.chineseName?.toLowerCase().includes(searchLower) ||
-      herb.englishName?.toLowerCase().includes(searchLower) ||
-      herb.latinName?.toLowerCase().includes(searchLower)
+      herb.pinyin_name?.toLowerCase().includes(searchLower) ||
+      herb.chinese_name?.toLowerCase().includes(searchLower) ||
+      herb.english_name?.toLowerCase().includes(searchLower) ||
+      herb.latin_name?.toLowerCase().includes(searchLower)
     );
 
     const matchesCategory = selectedCategory === "all" || herb.category === selectedCategory;
@@ -255,10 +261,10 @@ export default function Herbs() {
                       )}
                       <div className="grid grid-cols-[2fr,0.5fr,1.5fr,1.5fr,1.5fr,auto] gap-4 items-center">
                         <div>
-                          <h3 className="font-medium text-gray-900 truncate">{herb.pinyinName}</h3>
-                          {herb.latinName && (
+                          <h3 className="font-medium text-gray-900 truncate">{herb.pinyin_name}</h3>
+                          {herb.latin_name && (
                             <div className="text-xs text-gray-400 italic truncate">
-                              {herb.latinName}
+                              {herb.latin_name}
                             </div>
                           )}
                         </div>

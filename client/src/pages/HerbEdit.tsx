@@ -26,6 +26,8 @@ import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Herb, insertHerbSchema } from "@/types";
+import { z } from "zod";
+import { supabase } from "@/lib/supabase";
 import { useFieldArray } from "react-hook-form";
 import {
   Select,
@@ -39,12 +41,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 // Extiende el esquema para validación específica del frontend
 const herbSchema = insertHerbSchema.extend({
   // Podemos añadir validaciones adicionales aquí si es necesario
-  meridians: insertHerbSchema.shape.meridians,
-  functions: insertHerbSchema.shape.functions,
+  meridians: z.array(z.string()).optional(),
+  functions: z.array(z.string()).optional(),
   // Campos nuevos
-  notes: insertHerbSchema.shape.notes,
-  standardIndications: insertHerbSchema.shape.standardIndications,
-  pregnancyConsiderations: insertHerbSchema.shape.pregnancyConsiderations,
+  notes: z.string().optional(),
+  standard_indications: z.string().optional(),
+  pregnancy_considerations: z.string().optional(),
 });
 
 // Tipo derivado del esquema para TypeScript
@@ -99,10 +101,10 @@ export default function HerbEdit() {
   const form = useForm<HerbFormValues>({
     resolver: zodResolver(herbSchema),
     defaultValues: {
-      pinyinName: "",
-      chineseName: "",
-      englishName: "",
-      latinName: "",
+      pinyin_name: "",
+      chinese_name: "",
+      english_name: "",
+      latin_name: "",
       category: "",
       nature: "",
       flavor: "",
@@ -112,12 +114,12 @@ export default function HerbEdit() {
       functions: [""],
       applications: "",
       contraindications: "",
-      pharmacologicalEffects: [],
-      laboratoryEffects: [],
-      herbDrugInteractions: [],
+      pharmacological_effects: [],
+      laboratory_effects: [],
+      herb_drug_interactions: [],
       notes: "",
-      standardIndications: "",
-      pregnancyConsiderations: "",
+      standard_indications: "",
+      pregnancy_considerations: "",
     },
   });
   
@@ -126,10 +128,10 @@ export default function HerbEdit() {
     if (herb && !isLoading) {
       // Establecer los valores base
       form.reset({
-        pinyinName: herb.pinyinName || "",
-        chineseName: herb.chineseName || "",
-        englishName: herb.englishName || "",
-        latinName: herb.latinName || "",
+        pinyin_name: herb.pinyin_name || "",
+        chinese_name: herb.chinese_name || "",
+        english_name: herb.english_name || "",
+        latin_name: herb.latin_name || "",
         category: herb.category || "",
         nature: herb.nature || "",
         flavor: herb.flavor || "",
@@ -143,20 +145,20 @@ export default function HerbEdit() {
         functions: Array.isArray(herb.functions) && herb.functions.length > 0 
           ? herb.functions 
           : [""],
-        pharmacologicalEffects: Array.isArray(herb.pharmacologicalEffects) 
-          ? herb.pharmacologicalEffects 
+        pharmacological_effects: Array.isArray(herb.pharmacological_effects) 
+          ? herb.pharmacological_effects 
           : [],
-        laboratoryEffects: Array.isArray(herb.laboratoryEffects) 
-          ? herb.laboratoryEffects 
+        laboratory_effects: Array.isArray(herb.laboratory_effects) 
+          ? herb.laboratory_effects 
           : [],
-        herbDrugInteractions: Array.isArray(herb.herbDrugInteractions) 
-          ? herb.herbDrugInteractions 
+        herb_drug_interactions: Array.isArray(herb.herb_drug_interactions) 
+          ? herb.herb_drug_interactions 
           : [],
           
         // Nuevos campos
         notes: herb.notes || "",
-        standardIndications: herb.standardIndications || "",
-        pregnancyConsiderations: herb.pregnancyConsiderations || "",
+        standard_indications: herb.standard_indications || "",
+        pregnancy_considerations: herb.pregnancy_considerations || "",
       });
       console.log("Formulario actualizado con datos de la hierba:", herb);
     }
@@ -171,18 +173,52 @@ export default function HerbEdit() {
   // Mutación para crear o actualizar la hierba
   const mutation = useMutation({
     mutationFn: async (data: HerbFormValues) => {
+      // Filter out undefined values and only send fields that exist in the database
+      const cleanData = Object.fromEntries(
+        Object.entries(data).filter(([key, value]) => 
+          value !== undefined && 
+          value !== null && 
+          value !== "" &&
+          // Only include fields that exist in the database schema
+          [
+            'pinyin_name', 'chinese_name', 'latin_name', 'english_name',
+            'category', 'nature', 'flavor', 'toxicity', 'meridians',
+            'dosage', 'preparation', 'primary_functions', 'clinical_patterns',
+            'therapeutic_actions', 'tcm_actions', 'combinations',
+            'synergistic_pairs', 'antagonistic_pairs', 'standard_indications',
+            'special_indications', 'preparation_methods', 'contraindications',
+            'cautions', 'pregnancy_considerations', 'biological_effects',
+            'clinical_evidence', 'herb_drug_interactions', 'references_list',
+            'properties', 'notes', 'functions', 'applications',
+            'secondary_actions', 'common_combinations', 'pharmacological_effects',
+            'laboratory_effects', 'clinical_studies_and_research'
+          ].includes(key)
+        )
+      );
+
+      console.log("Clean data to insert:", cleanData);
+
       if (isNewHerb) {
-        // Para crear una nueva hierba siempre usamos POST
-        return await apiRequest("/api/herbs", {
-          method: "POST",
-          body: JSON.stringify(data),
-        });
+        // Para crear una nueva hierba
+        const { data: newHerb, error } = await supabase
+          .from('herbs')
+          .insert(cleanData)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return newHerb;
       } else if (id && id !== 'new') {
-        // Solo intentamos actualizar si tenemos un ID válido
-        return await apiRequest(`/api/herbs/${id}`, {
-          method: "PATCH",
-          body: JSON.stringify(data),
-        });
+        // Para actualizar una hierba existente
+        const { data: updatedHerb, error } = await supabase
+          .from('herbs')
+          .update(cleanData)
+          .eq('id', id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return updatedHerb;
       } else {
         throw new Error("ID de hierba no válido");
       }
@@ -190,14 +226,17 @@ export default function HerbEdit() {
     onSuccess: (data) => {
       toast({
         title: isNewHerb ? "Hierba creada" : "Hierba actualizada",
-        description: `La hierba ${data.pinyinName} ha sido ${isNewHerb ? "creada" : "actualizada"} correctamente.`,
+        description: `La hierba ${data.pinyin_name} ha sido ${isNewHerb ? "creada" : "actualizada"} correctamente.`,
       });
       // Invalidamos la caché para recargar los datos
       queryClient.invalidateQueries({ queryKey: ["/api/herbs"] });
-      // Redirigimos a la página de detalle
-      navigate(`/herbs/${data.id}`);
+      // Redirigimos a la página de detalle después de un pequeño delay
+      setTimeout(() => {
+        navigate(`/herbs/${data.id}`);
+      }, 100);
     },
     onError: (error) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Error",
         description: `Ha ocurrido un error al ${isNewHerb ? "crear" : "actualizar"} la hierba: ${error.message}`,
@@ -208,6 +247,7 @@ export default function HerbEdit() {
 
   // Maneja el envío del formulario
   const onSubmit = (data: HerbFormValues) => {
+    console.log("Form submitted with data:", data);
     mutation.mutate(data);
   };
 
@@ -234,7 +274,7 @@ export default function HerbEdit() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-2xl font-bold">
-            {isNewHerb ? "Nueva Hierba" : `Editar Hierba: ${herb?.pinyinName}`}
+            {isNewHerb ? "Nueva Hierba" : `Editar Hierba: ${herb?.pinyin_name}`}
           </h1>
         </div>
       </div>
@@ -247,7 +287,7 @@ export default function HerbEdit() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
-                  name="pinyinName"
+                  name="pinyin_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nombre Pinyin</FormLabel>
@@ -261,7 +301,7 @@ export default function HerbEdit() {
 
                 <FormField
                   control={form.control}
-                  name="chineseName"
+                  name="chinese_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nombre Chino</FormLabel>
@@ -275,7 +315,7 @@ export default function HerbEdit() {
 
                 <FormField
                   control={form.control}
-                  name="englishName"
+                  name="english_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nombre en Inglés</FormLabel>
@@ -289,7 +329,7 @@ export default function HerbEdit() {
 
                 <FormField
                   control={form.control}
-                  name="latinName"
+                  name="latin_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nombre Latín</FormLabel>
@@ -593,7 +633,7 @@ export default function HerbEdit() {
 
                 <FormField
                   control={form.control}
-                  name="pregnancyConsiderations"
+                  name="pregnancy_considerations"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Consideraciones durante el embarazo</FormLabel>

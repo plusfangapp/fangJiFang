@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { Formula, insertFormulaSchema } from "@/types";
 
 // Extendemos el esquema para validación específica del frontend
@@ -55,9 +56,9 @@ export default function FormulaEdit() {
   const form = useForm<FormulaFormValues>({
     resolver: zodResolver(formulaSchema),
     defaultValues: {
-      pinyinName: "",
-      chineseName: "",
-      englishName: "",
+      pinyin_name: "",
+      chinese_name: "",
+      english_name: "",
       category: "",
       indications: "",
       contraindications: "",
@@ -102,29 +103,62 @@ export default function FormulaEdit() {
   // Mutación para crear o actualizar la fórmula
   const mutation = useMutation({
     mutationFn: async (data: FormulaFormValues) => {
+      // Filter out undefined values and only send fields that exist in the database
+      const cleanData = Object.fromEntries(
+        Object.entries(data).filter(([key, value]) => 
+          value !== undefined && 
+          value !== null && 
+          value !== "" &&
+          // Only include fields that exist in the database schema
+          [
+            'pinyin_name', 'chinese_name', 'english_name', 'category',
+            'actions', 'indications', 'clinical_manifestations',
+            'clinical_applications', 'contraindications', 'cautions',
+            'pharmacological_effects', 'research', 'herb_drug_interactions',
+            'references_list', 'composition'
+          ].includes(key)
+        )
+      );
+
+      console.log("Clean formula data to insert:", cleanData);
+
       if (isNewFormula) {
-        return await apiRequest("/api/formulas", {
-          method: "POST",
-          body: JSON.stringify(data),
-        });
+        // Para crear una nueva fórmula
+        const { data: newFormula, error } = await supabase
+          .from('formulas')
+          .insert(cleanData)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return newFormula;
       } else {
-        return await apiRequest(`/api/formulas/${id}`, {
-          method: "PATCH",
-          body: JSON.stringify(data),
-        });
+        // Para actualizar una fórmula existente
+        const { data: updatedFormula, error } = await supabase
+          .from('formulas')
+          .update(cleanData)
+          .eq('id', id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return updatedFormula;
       }
     },
     onSuccess: (data) => {
       toast({
         title: isNewFormula ? "Fórmula creada" : "Fórmula actualizada",
-        description: `La fórmula ${data.pinyinName} ha sido ${isNewFormula ? "creada" : "actualizada"} correctamente.`,
+        description: `La fórmula ${data.pinyin_name} ha sido ${isNewFormula ? "creada" : "actualizada"} correctamente.`,
       });
       // Invalidamos la caché para recargar los datos
       queryClient.invalidateQueries({ queryKey: ["/api/formulas"] });
-      // Redirigimos a la página de detalle
-      navigate(`/formulas/${data.id}`);
+      // Redirigimos a la página de detalle después de un pequeño delay
+      setTimeout(() => {
+        navigate(`/formulas/${data.id}`);
+      }, 100);
     },
     onError: (error) => {
+      console.error("Formula mutation error:", error);
       toast({
         title: "Error",
         description: `Ha ocurrido un error al ${isNewFormula ? "crear" : "actualizar"} la fórmula: ${error.message}`,
@@ -135,6 +169,7 @@ export default function FormulaEdit() {
 
   // Maneja el envío del formulario
   const onSubmit = (data: FormulaFormValues) => {
+    console.log("Formula form submitted with data:", data);
     mutation.mutate(data);
   };
 
@@ -174,7 +209,7 @@ export default function FormulaEdit() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="pinyinName"
+                  name="pinyin_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nombre en Pinyin</FormLabel>
@@ -188,7 +223,7 @@ export default function FormulaEdit() {
 
                 <FormField
                   control={form.control}
-                  name="chineseName"
+                  name="chinese_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nombre Chino</FormLabel>
@@ -202,7 +237,7 @@ export default function FormulaEdit() {
 
                 <FormField
                   control={form.control}
-                  name="englishName"
+                  name="english_name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nombre en Inglés</FormLabel>
