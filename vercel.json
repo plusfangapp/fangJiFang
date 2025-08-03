@@ -4,11 +4,12 @@
   "framework": "vite",
   "installCommand": "npm install",
   "devCommand": "npm run dev:frontend",
-  "functions": {
-    "client/src/**/*.tsx": {
-      "runtime": "nodejs18.x"
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  },
+  ],
   "env": {
     "VITE_SUPABASE_URL": "https://ueoyqnnlpdjdmhkxyuik.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlb3lxbm5scGRqZG1oa3h5dWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNTA3ODAsImV4cCI6MjA2OTgyNjc4MH0.sc5U33ZUGbnfN99fWM1UgsXxFoJnHOQlfC0lZu-BiCM"

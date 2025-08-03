@@ -39,7 +39,7 @@ export default function FormulaEdit() {
   const { id } = useParams();
   const [_, navigate] = useLocation();
   const { toast } = useToast();
-  const isNewFormula = id === "new";
+  const isNewFormula = id === "new" || !id || id === "undefined";
 
   // Consulta para obtener los datos de la fórmula si estamos editando
   const { data: formula, isLoading } = useQuery<Formula>({
@@ -121,9 +121,12 @@ export default function FormulaEdit() {
       );
 
       console.log("Clean formula data to insert:", cleanData);
+      console.log("isNewFormula:", isNewFormula);
+      console.log("id:", id);
 
-      if (isNewFormula) {
+      if (isNewFormula || !id || id === "new" || id === "undefined") {
         // Para crear una nueva fórmula
+        console.log("Creating new formula");
         const { data: newFormula, error } = await supabase
           .from('formulas')
           .insert(cleanData)
@@ -132,8 +135,9 @@ export default function FormulaEdit() {
         
         if (error) throw error;
         return newFormula;
-      } else {
+      } else if (id && id !== "new" && id !== "undefined") {
         // Para actualizar una fórmula existente
+        console.log("Updating existing formula with id:", id);
         const { data: updatedFormula, error } = await supabase
           .from('formulas')
           .update(cleanData)
@@ -143,6 +147,8 @@ export default function FormulaEdit() {
         
         if (error) throw error;
         return updatedFormula;
+      } else {
+        throw new Error("Invalid formula ID for update operation");
       }
     },
     onSuccess: (data) => {
