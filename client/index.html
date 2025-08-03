@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Medicina China</title>
+    <script>
+      // Aplica el color personalizado guardado si existe
+      (function() {
+        const appColor = localStorage.getItem('appColor');
+        if (appColor) {
+          const colors = {
+            blue: "201 96% 32%",
+            green: "142 76% 36%",
+            amber: "36 100% 50%",
+            red: "0 84% 60%",
+            purple: "270 70% 40%"
+          };
+          const hsl = colors[appColor] || colors.blue;
+          document.documentElement.style.setProperty("--primary", hsl);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
+    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+  </body>
+</html>

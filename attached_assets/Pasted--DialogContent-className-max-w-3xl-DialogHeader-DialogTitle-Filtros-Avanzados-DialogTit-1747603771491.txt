@@ -1,0 +1,212 @@
+<DialogContent className="max-w-3xl">
+  <DialogHeader>
+    <DialogTitle>Filtros Avanzados</DialogTitle>
+    <DialogDescription>
+      Selecciona los filtros que deseas aplicar a las hierbas según sus propiedades.
+    </DialogDescription>
+  </DialogHeader>
+
+  <Tabs value={advancedFiltersTab} onValueChange={setAdvancedFiltersTab}>
+    <TabsList className="grid w-full grid-cols-3">
+      <TabsTrigger value="clinical">Aplicaciones Clínicas</TabsTrigger>
+      <TabsTrigger value="pharmacological">Efectos Farmacológicos</TabsTrigger>
+      <TabsTrigger value="biological">Efectos Biológicos</TabsTrigger>
+    </TabsList>
+
+    <TabsContent value="clinical" className="space-y-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar aplicaciones clínicas..."
+          className="pl-10 bg-[#E5E5EA] bg-opacity-50 rounded-lg border-0 shadow-none"
+          value={clinicalSearch}
+          onChange={(e) => setClinicalSearch(e.target.value)}
+        />
+      </div>
+
+      <ScrollArea className="h-[300px] border rounded-lg p-2">
+        {clinicalApplications.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No se encontraron aplicaciones clínicas</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {clinicalApplications
+              .filter(app => 
+                clinicalSearch === "" || 
+                app.toLowerCase().includes(clinicalSearch.toLowerCase())
+              )
+              .map(application => {
+                const isSelected = selectedFilters.clinical.includes(application);
+                return (
+                  <div key={application} className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id={`clinical-${application}`}
+                      checked={isSelected}
+                      onChange={() => {
+                        if (isSelected) {
+                          setSelectedFilters({
+                            ...selectedFilters,
+                            clinical: selectedFilters.clinical.filter(app => app !== application)
+                          });
+                        } else {
+                          setSelectedFilters({
+                            ...selectedFilters,
+                            clinical: [...selectedFilters.clinical, application]
+                          });
+                        }
+                      }}
+                      className="h-4 w-4"
+                    />
+                    <label htmlFor={`clinical-${application}`} className="text-sm">
+                      {application}
+                    </label>
+                  </div>
+                );
+              })
+            }
+          </div>
+        )}
+      </ScrollArea>
+    </TabsContent>
+
+    <TabsContent value="pharmacological" className="space-y-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar efectos farmacológicos..."
+          className="pl-10 bg-[#E5E5EA] bg-opacity-50 rounded-lg border-0 shadow-none"
+          value={pharmacologicalSearch}
+          onChange={(e) => setPharmacologicalSearch(e.target.value)}
+        />
+      </div>
+
+      <ScrollArea className="h-[300px] border rounded-lg p-2">
+        {pharmacologicalEffects.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No se encontraron efectos farmacológicos</p>
+          </div>
+        ) :(
+          <div className="space-y-2">
+            {pharmacologicalEffects
+              .filter(effect => 
+                pharmacologicalSearch === "" || 
+                effect.toLowerCase().includes(pharmacologicalSearch.toLowerCase())
+              )
+              .map(effect => {
+                const isSelected = selectedFilters.pharmacological.includes(effect);
+                return (
+                  <div key={effect} className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id={`pharmacological-${effect}`}
+                      checked={isSelected}
+                      onChange={() => {
+                        if (isSelected) {
+                          setSelectedFilters({
+                            ...selectedFilters,
+                            pharmacological: selectedFilters.pharmacological.filter(e => e !== effect)
+                          });
+                        } else {
+                          setSelectedFilters({
+                            ...selectedFilters,
+                            pharmacological: [...selectedFilters.pharmacological, effect]
+                          });
+                        }
+                      }}
+                      className="h-4 w-4"
+                    />
+                    <label htmlFor={`pharmacological-${effect}`} className="text-sm">
+                      {effect}
+                    </label>
+                  </div>
+                );
+              })
+            }
+          </div>
+        )}
+      </ScrollArea>
+    </TabsContent>
+
+    <TabsContent value="biological" className="space-y-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar efectos biológicos..."
+          className="pl-10 bg-[#E5E5EA] bg-opacity-50 rounded-lg border-0 shadow-none"
+          value={biologicalSearch}
+          onChange={(e) => setBiologicalSearch(e.target.value)}
+        />
+      </div>
+
+      <ScrollArea className="h-[300px] border rounded-lg p-2">
+        {biologicalEffects.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No se encontraron efectos biológicos</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {biologicalEffects
+              .filter(effect => 
+                biologicalSearch === "" || 
+                effect.toLowerCase().includes(biologicalSearch.toLowerCase())
+              )
+              .map(effect => {
+                const isSelected = selectedFilters.biological.includes(effect);
+                return (
+                  <div key={effect} className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id={`biological-${effect}`}
+                      checked={isSelected}
+                      onChange={() => {
+                        if (isSelected) {
+                          setSelectedFilters({
+                            ...selectedFilters,
+                            biological: selectedFilters.biological.filter(e => e !== effect)
+                          });
+                        } else {
+                          setSelectedFilters({
+                            ...selectedFilters,
+                            biological: [...selectedFilters.biological, effect]
+                          });
+                        }
+                      }}
+                      className="h-4 w-4"
+                    />
+                    <label htmlFor={`biological-${effect}`} className="text-sm">
+                      {effect}
+                    </label>
+                  </div>
+                );
+              })
+            }
+          </div>
+        )}
+      </ScrollArea>
+    </TabsContent>
+  </Tabs>
+
+  <DialogFooter className="flex items-center justify-between">
+    <div>
+      {(selectedFilters.clinical.length > 0 || 
+        selectedFilters.pharmacological.length > 0 || 
+        selectedFilters.biological.length > 0) && (
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            setSelectedFilters({
+              clinical: [],
+              pharmacological: [],
+              biological: []
+            });
+          }}
+        >
+          Limpiar filtros
+        </Button>
+      )}
+    </div>
+    <Button onClick={() => setShowAdvancedFiltersDialog(false)}>Aplicar</Button>
+  </DialogFooter>
+</DialogContent>
