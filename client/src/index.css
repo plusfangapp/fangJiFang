@@ -1,0 +1,292 @@
+/* Estilos para la aplicación de Medicina China */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .chinese {
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  
+  .meridian-badge {
+    @apply inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium;
+    @apply bg-blue-100 text-blue-800;
+  }
+  
+  /* Estilos para los tooltips de alertas médicas */
+  .tooltip-container {
+    @apply relative inline-flex items-center justify-center;
+    cursor: pointer;
+  }
+  
+  .tooltip {
+    @apply absolute z-50 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg;
+    @apply opacity-0 invisible transition-all duration-200 w-max max-w-[200px] text-center;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    margin-bottom: 5px;
+    white-space: pre-line; /* Permite saltos de línea con \n */
+  }
+  
+  .tooltip-container:hover .tooltip {
+    @apply opacity-100 visible;
+    transform: translateX(-50%) translateY(0);
+  }
+  
+  .meridian-Lung {
+    @apply bg-white text-gray-800 border border-gray-300;
+  }
+  
+  .meridian-Large-Intestine {
+    @apply bg-gray-100 text-gray-800;
+  }
+  
+  .meridian-Stomach {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .meridian-Spleen {
+    @apply bg-yellow-200 text-yellow-800;
+  }
+  
+  .meridian-Heart {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .meridian-Small-Intestine {
+    @apply bg-red-50 text-red-800;
+  }
+  
+  .meridian-Bladder {
+    @apply bg-blue-100 text-blue-800;
+  }
+  
+  .meridian-Kidney {
+    @apply bg-blue-200 text-blue-800;
+  }
+  
+  .meridian-Pericardium {
+    @apply bg-pink-100 text-pink-800;
+  }
+  
+  .meridian-Triple-Burner {
+    @apply bg-orange-100 text-orange-800;
+  }
+  
+  .meridian-Gall-Bladder {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .meridian-Liver {
+    @apply bg-green-200 text-green-800;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 201 96% 32%; /* Azul principal */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+    --chart-1: 201 96% 32%;
+    --chart-2: 120 100% 25%;
+    --chart-3: 43 96% 48%;
+    --chart-4: 0 91% 71%;
+    --chart-5: 262 83% 58%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 201 96% 32%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 221.2 83.2% 53.3%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  .chinese {
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+}
+
+/* Estilos para las chips de hierbas */
+.herb-chip {
+  @apply inline-flex items-center px-3 py-1 rounded-md text-sm font-medium border border-primary bg-white text-foreground m-1;
+}
+
+/* Estilos para las secciones de acciones */
+.herb-action {
+  @apply mb-3;
+}
+
+.herb-action-primary {
+  @apply font-bold text-foreground;
+}
+
+.herb-action-secondary {
+  @apply text-foreground;
+}
+
+.herb-combinations {
+  @apply flex flex-wrap mt-1;
+}
+
+/* Estilos para las badges de meridianos */
+.meridian-badge {
+  @apply inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-semibold rounded-full;
+}
+
+.meridian-Lung {
+  @apply bg-white border border-blue-300 text-blue-700;
+}
+
+.meridian-Large-Intestine, .meridian-Colon {
+  @apply bg-white border border-orange-300 text-orange-700;
+}
+
+.meridian-Stomach {
+  @apply bg-white border border-yellow-400 text-yellow-700;
+}
+
+.meridian-Spleen {
+  @apply bg-white border border-amber-300 text-amber-700;
+}
+
+.meridian-Heart {
+  @apply bg-white border border-red-300 text-red-700;
+}
+
+.meridian-Small-Intestine {
+  @apply bg-white border border-pink-300 text-pink-700;
+}
+
+.meridian-Urinary-Bladder, .meridian-Bladder {
+  @apply bg-white border border-cyan-300 text-cyan-700;
+}
+
+.meridian-Kidney {
+  @apply bg-white border border-indigo-300 text-indigo-700;
+}
+
+.meridian-Pericardium {
+  @apply bg-white border border-fuchsia-300 text-fuchsia-700;
+}
+
+.meridian-Triple-Burner, .meridian-Triple-Heater, .meridian-Sanjiao {
+  @apply bg-white border border-purple-300 text-purple-700;
+}
+
+.meridian-Gallbladder {
+  @apply bg-white border border-green-300 text-green-700;
+}
+
+.meridian-Liver {
+  @apply bg-white border border-emerald-300 text-emerald-700;
+}
+
+/* Estilos para los recuadros de combinaciones */
+.herb-combination {
+  @apply inline-flex px-1.5 py-1 border rounded-md bg-white shadow-sm;
+}
+
+.use-individually {
+  @apply inline px-1.5 py-1 border rounded-md bg-white shadow-sm text-xs font-medium text-gray-600 italic;
+}
+
+/* Estilos para los cuadros de búsqueda */
+.search-input, 
+input[type="search"],
+input[type="text"],
+.input {
+  @apply bg-[#E5E5EA] bg-opacity-50 rounded-lg border-0 shadow-none focus-visible:ring-1 focus-visible:ring-gray-300 focus-visible:ring-opacity-50 focus:shadow-none;
+}
+
+/* Estilos para los selectores */
+.select-trigger,
+[data-radix-select-trigger],
+[cmdk-input-wrapper] {
+  @apply bg-[#E5E5EA] bg-opacity-50 rounded-lg border-0 shadow-none focus-visible:ring-1 focus-visible:ring-gray-300 focus-visible:ring-opacity-50 focus:shadow-none;
+}
+
+/* Estilos específicos para la impresión */
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .print\:border-0,
+  .force-print-styles .border,
+  .force-print-styles [class*="border-"] {
+    border: none !important;
+  }
+  
+  .print\:rounded-none,
+  .force-print-styles .rounded-md,
+  .force-print-styles .rounded-lg,
+  .force-print-styles [class*="rounded-"] {
+    border-radius: 0 !important;
+  }
+  
+  .print\:shadow-none,
+  .force-print-styles .shadow,
+  .force-print-styles .shadow-sm,
+  .force-print-styles .shadow-md,
+  .force-print-styles [class*="shadow-"] {
+    box-shadow: none !important;
+  }
+  
+  .print\:bg-white,
+  .force-print-styles .bg-gray-50,
+  .force-print-styles [class*="bg-"] {
+    background-color: white !important;
+  }
+}
+
+/* Estilos para exportación a PDF */
+.export-pdf\:shadow-none {
+  box-shadow: none !important;
+}
+
+.export-pdf\:border-0 {
+  border: none !important;
+}
+
+.export-pdf\:rounded-none {
+  border-radius: 0 !important;
+}
+
+/* Clase para aplicar al cuerpo cuando se está generando un PDF */
+.generating-pdf {
+  background-color: white !important;
+}
+
+.generating-pdf\:block {
+  display: block !important;
+}

@@ -1,0 +1,280 @@
+import { 
+  Trash2, 
+  Minus, 
+  Plus, 
+  X,
+  AlertCircle,
+  Eye,
+  Save,
+  FileDown
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PatientSelector from "@/components/PatientSelector";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { PrescriptionItem, PrescriptionData } from "@/types";
+
+interface PrescriptionBuilderProps {
+  currentPrescription: PrescriptionData;
+  updatePrescriptionInfo: (field: string, value: string) => void;
+  updateMedicalCondition: (condition: string, value: boolean) => void;
+  updateItemQuantity: (index: number, quantity: number) => void;
+  removeItemFromPrescription: (index: number) => void;
+  clearPrescription: () => void;
+  onPreview: () => void;
+  addCustomMedicalCondition?: (conditionName: string) => void;
+  removeCustomMedicalCondition?: (conditionId: string) => void;
+  onSave?: () => void;
+  onGeneratePDF?: () => void;
+}
+
+// Componente PrescriptionBuilder simplificado para resolver errores de sintaxis
+const PrescriptionBuilder = ({
+  currentPrescription,
+  updatePrescriptionInfo,
+  updateMedicalCondition,
+  updateItemQuantity,
+  removeItemFromPrescription,
+  clearPrescription,
+  onPreview,
+  onSave,
+  onGeneratePDF,
+  addCustomMedicalCondition,
+  removeCustomMedicalCondition
+}: PrescriptionBuilderProps) => {
+  // Estado para almacenar las condiciones médicas personalizadas
+  const [userMedicalConditions, setUserMedicalConditions] = useState<Array<{id: string, name: string}>>([]);
+
+  // Cargar las condiciones médicas del usuario desde localStorage
+  useEffect(() => {
+    try {
+      const savedConditions = localStorage.getItem('medicalConditions');
+      if (savedConditions) {
+        setUserMedicalConditions(JSON.parse(savedConditions));
+      }
+    } catch (error) {
+      console.error("Error loading medical conditions:", error);
+    }
+  }, []);
+
+  // Agrupar los elementos por tipo para mostrarlos organizados
+  const herbItems = currentPrescription.items.filter(item => item.type === "herb");
+  const formulaItems = currentPrescription.items.filter(item => item.type === "formula");
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-xl">Prescription Builder</CardTitle>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={clearPrescription}
+              className="h-8 px-2 text-xs"
+              disabled={currentPrescription.items.length === 0}
+            >
+              <X className="h-4 w-4 mr-1" /> Clear
+            </Button>
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={onPreview}
+              className="h-8 px-2 text-xs"
+              disabled={currentPrescription.items.length === 0}
+            >
+              <Eye className="h-4 w-4 mr-1" /> Preview
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <Tabs defaultValue="prescripcion" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="paciente">Patient Data</TabsTrigger>
+              <TabsTrigger value="prescripcion">Prescription Content</TabsTrigger>
+            </TabsList>
+
+            {/* Tab: Patient Data */}
+            <TabsContent value="paciente" className="space-y-4 pt-4">
+              <div className="space-y-4">
+                <div className="border rounded-md p-4 bg-gray-50">
+                  <h3 className="font-semibold mb-3">Prescription Information</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="prescription-date">Date</Label>
+                      <Input 
+                        id="prescription-date" 
+                        type="date" 
+                        value={currentPrescription.date} 
+                        onChange={(e) => updatePrescriptionInfo("date", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="prescription-number">Number</Label>
+                      <Input 
+                        id="prescription-number" 
+                        value={currentPrescription.number} 
+                        onChange={(e) => updatePrescriptionInfo("number", e.target.value)}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border rounded-md p-4 bg-gray-50">
+                  <h3 className="font-semibold mb-3">Patient Information</h3>
+                  <div className="mb-4">
+                    <PatientSelector 
+                      onSelectPatient={(patient) => {
+                        updatePrescriptionInfo("patientId", patient.id.toString());
+                        updatePrescriptionInfo("patientName", patient.name);
+                        updatePrescriptionInfo("patientEmail", patient.identifier || "");
+                        updatePrescriptionInfo("patientPhone", patient.contactInfo || "");
+                        updatePrescriptionInfo("patientAddress", patient.medicalHistory || "");
+                      }}
+                      updatePrescriptionNumber={(number) => {
+                        updatePrescriptionInfo("number", number);
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Tab: Prescription Content */}
+            <TabsContent value="prescripcion" className="space-y-4 pt-4">
+              <div className="space-y-4">
+                {currentPrescription.items.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No se han añadido hierbas o fórmulas a la prescripción.</p>
+                    <p className="text-sm mt-2">Añade hierbas o fórmulas desde la biblioteca.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Lista de hierbas */}
+                    {herbItems.length > 0 && (
+                      <div className="border rounded-md p-4 bg-gray-50">
+                        <h3 className="font-semibold mb-3">Hierbas</h3>
+                        <div className="space-y-3">
+                          {herbItems.map((item, index) => {
+                            const originalIndex = currentPrescription.items.findIndex(i => i === item);
+                            return (
+                              <div key={`${item.id}-${index}`} className="flex items-start space-x-2 p-2 rounded-md border bg-white">
+                                <div className="flex-1">
+                                  <div className="flex items-center">
+                                    <h4 className="font-medium">{item.name}</h4>
+                                  </div>
+                                  <p className="text-sm text-gray-500">{item.latinName}</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => updateItemQuantity(originalIndex, Math.max(1, (item.quantity || 0) - 1))}
+                                  >
+                                    <Minus className="h-4 w-4" />
+                                  </Button>
+                                  <span className="w-10 text-center">{item.quantity || 0}g</span>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => updateItemQuantity(originalIndex, (item.quantity || 0) + 1)}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-500"
+                                  onClick={() => removeItemFromPrescription(originalIndex)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Lista de fórmulas */}
+                    {formulaItems.length > 0 && (
+                      <div className="border rounded-md p-4 bg-gray-50">
+                        <h3 className="font-semibold mb-3">Fórmulas</h3>
+                        <div className="space-y-3">
+                          {formulaItems.map((item, index) => {
+                            const originalIndex = currentPrescription.items.findIndex(i => i === item);
+                            return (
+                              <div key={`${item.id}-${index}`} className="flex items-start space-x-2 p-2 rounded-md border bg-white">
+                                <div className="flex-1">
+                                  <div className="flex items-center">
+                                    <h4 className="font-medium">{item.name}</h4>
+                                  </div>
+                                  <p className="text-sm text-gray-500">{item.latinName}</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => updateItemQuantity(originalIndex, Math.max(1, (item.quantity || 0) - 1))}
+                                  >
+                                    <Minus className="h-4 w-4" />
+                                  </Button>
+                                  <span className="w-10 text-center">{item.quantity || 0}g</span>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => updateItemQuantity(originalIndex, (item.quantity || 0) + 1)}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-500"
+                                  onClick={() => removeItemFromPrescription(originalIndex)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6">
+                <Label htmlFor="prescription-notes" className="block text-sm font-medium mb-1">Notas de prescripción</Label>
+                <Textarea
+                  id="prescription-notes"
+                  value={currentPrescription.notes}
+                  onChange={(e) => updatePrescriptionInfo("notes", e.target.value)}
+                  placeholder="Instrucciones especiales..."
+                  className="w-full resize-none"
+                  rows={2}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default PrescriptionBuilder;

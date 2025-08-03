@@ -1,0 +1,101 @@
+{
+  "pinyinName": "Ge Gen Tang",
+  "chineseName": "葛根湯",
+  "englishName": "Pueraria Combination",
+  "category": "Exterior-Releasing Formulas",
+  "actions": [
+    "Releases the exterior and muscle layer",
+    "Promotes generation of body fluids"
+  ],
+  "clinicalManifestations": "Taiyang syndrome with wind-cold invasion: severe muscle stiffness of the neck and back, aversion to cold, with or without fever, aversion to wind, absence of perspiration and diarrhea.",
+  "clinicalApplications": "Fever, common cold, influenza, respiratory tract infections, allergic rhinitis, bronchial asthma, atrioventricular block, testicular pain, hernia, appendicitis, sciatica, allergic purpura, itching, frostbite, eczema, urticaria, enuresis, hyperactivity disorder",
+  "contraindications": ["Refer to Ma Huang"],
+  "cautions": ["Refer to Ma Huang"],
+  "pharmacologicalEffects": [
+    "antibacterial", 
+    "antiviral", 
+    "antipyretic", 
+    "anti-inflammatory", 
+    "cardiovascular", 
+    "chronotropic and inotropic", 
+    "immunostimulant", 
+    "hepatoprotective"
+  ],
+  "biologicalEffects": ["leucocyte count increase"],
+  "research": [
+    "Fever", 
+    "upper respiratory tract infection", 
+    "meningitis", 
+    "neck and shoulder pain", 
+    "periarthritis of shoulder", 
+    "soft tissue injuries", 
+    "facial paralysis", 
+    "Bell's palsy", 
+    "tension headache", 
+    "scleroderma", 
+    "painful gynecomastia in liver cirrhosis", 
+    "cataract surgery"
+  ],
+  "herbDrugInteractions": ["Acetaminophen"],
+  "composition": [
+    {
+      "herbId": "",
+      "pinyinName": "Ge Gen",
+      "englishName": "Radix Puerariae Lobatae",
+      "dosage": "21%",
+      "function": ""
+    },
+    {
+      "herbId": "",
+      "pinyinName": "Qiang Huo",
+      "englishName": "Rz/Rx Notopterygii",
+      "dosage": "10%",
+      "function": ""
+    },
+    {
+      "herbId": "",
+      "pinyinName": "Sheng Jiang",
+      "englishName": "Rz Zingiberis Recens",
+      "dosage": "14%",
+      "function": ""
+    },
+    {
+      "herbId": "",
+      "pinyinName": "Gui Zhi",
+      "englishName": "Ramulus Cinnamomi",
+      "dosage": "15%",
+      "function": ""
+    },
+    {
+      "herbId": "",
+      "pinyinName": "Bai Shao",
+      "englishName": "Radix Paeoniae Alba",
+      "dosage": "11%",
+      "function": ""
+    },
+    {
+      "herbId": "",
+      "pinyinName": "Zhi Gan Cao",
+      "englishName": "Rx/Rz Glycyrrhizae Prep",
+      "dosage": "11%",
+      "function": ""
+    },
+    {
+      "herbId": "",
+      "pinyinName": "Da Zao (Hong)",
+      "englishName": "Fructus Jujubae",
+      "dosage": "14%",
+      "function": ""
+    },
+    {
+      "herbId": "",
+      "pinyinName": "Yi Yi Ren",
+      "englishName": "Semen Coicis",
+      "dosage": "4%",
+      "function": ""
+    }
+  ],
+  "modifications": [],
+  "notes": "",
+  "references": "Chen J., Chen T. (2003). Chinese Herbal Formulas and Applications. Art of Medicine Press"
+}

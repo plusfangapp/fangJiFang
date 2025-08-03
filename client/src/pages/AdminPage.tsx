@@ -1,0 +1,715 @@
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { UserPlus, Bell, LineChart, LayoutDashboard, Users, Settings, FileText, Database, Shield, PlusCircle, X } from "lucide-react";
+import * as RechartsPrimitive from "recharts";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import Layout from "@/components/Layout";
+import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useLocation } from 'wouter';
+import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
+
+export default function AdminPage() {
+  const { toast } = useToast();
+  const [location, navigate] = useLocation();
+  const [filters, setFilters] = useState({
+    search: "",
+    plan: "all",
+    status: "all"
+  });
+
+  // Verify admin access
+  useEffect(() => {
+    const checkAdminAccess = async () => {
+      try {
+        const response = await fetch('/api/admin/verify', {
+          credentials: 'include'
+        });
+        if (!response.ok) {
+          toast({
+            title: "Acceso denegado",
+            description: "No tienes permisos de administrador",
+            variant: "destructive"
+          });
+          navigate('/');
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Error al verificar permisos",
+          variant: "destructive"
+        });
+        navigate('/');
+      }
+    };
+
+    checkAdminAccess();
+  }, []);
+
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("/api/admin/users", {
+          credentials: 'include'
+        });
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+      }
+    }
+  });
+
+  const { data: statsData = {
+    monthlyPrescriptions: 0,
+    totalPrescriptions: 0,
+    prescriptionsByMonth: [],
+    prescriptionsByUser: [],
+    activeUsers: 0,
+    proUsers: 0,
+    usersByRole: { admin: 0, user: 0 },
+    usersByStatus: { active: 0, inactive: 0, suspended: 0 },
+    usersByPlan: { basic: 0, premium: 0, enterprise: 0 }
+  }} = useQuery({
+    queryKey: ["admin-stats"],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/stats", {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error("Error fetching stats");
+      return response.json();
+    }
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ userId, data }: { userId: number, data: any }) => {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error("Error updating user");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Usuario actualizado correctamente" });
+      // Refresh users data
+      window.location.reload();
+    }
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "DELETE",
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error("Error deleting user");
+    },
+    onSuccess: () => {
+      toast({ title: "Usuario eliminado correctamente" });
+      // Refresh users data
+      window.location.reload();
+    }
+  });
+
+  const filteredUsers = users?.filter(user => {
+    const matchesSearch = user.fullName?.toLowerCase().includes(filters.search.toLowerCase()) ||
+                         user.email?.toLowerCase().includes(filters.search.toLowerCase());
+    const matchesPlan = filters.plan === "all" || user.plan === filters.plan;
+    const matchesStatus = filters.status === "all" || user.status === filters.status;
+    return matchesSearch && matchesPlan && matchesStatus;
+  });
+
+  return (
+    <Layout>
+      <div className="container mx-auto py-6 space-y-6">
+        <Tabs defaultValue="stats" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="stats">Estadísticas</TabsTrigger>
+            <TabsTrigger value="users">Usuarios</TabsTrigger>
+            <TabsTrigger value="config">Configuración</TabsTrigger>
+            <TabsTrigger value="appearance">Apariencia PDF</TabsTrigger>
+            <TabsTrigger value="database">Base de Datos</TabsTrigger>
+            <TabsTrigger value="security">Seguridad</TabsTrigger>
+            <TabsTrigger value="notifications">Notificaciones</TabsTrigger>
+          </TabsList>
+
+          {/* Stats Content */}
+          <TabsContent value="stats" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Usuarios Activos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{statsData?.activeUsers || 0}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Prescripciones Totales</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{statsData?.totalPrescriptions || 0}</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Prescripciones Mensuales</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{statsData?.monthlyPrescriptions || 0}</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Evolución de Prescripciones</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ChartContainer 
+                      className="w-full h-full"
+                      config={{
+                        count: {
+                          label: "Prescripciones",
+                          color: "#0ea5e9",
+                        },
+                      }}
+                    >
+                      <RechartsPrimitive.ResponsiveContainer width="100%" height={300}>
+                        <RechartsPrimitive.LineChart data={statsData?.prescriptionsByMonth || []}>
+                          <RechartsPrimitive.XAxis dataKey="month" />
+                          <RechartsPrimitive.YAxis />
+                          <RechartsPrimitive.Tooltip content={ChartTooltipContent} />
+                          <RechartsPrimitive.Line type="monotone" dataKey="count" stroke="#0ea5e9" />
+                        </RechartsPrimitive.LineChart>
+                      </RechartsPrimitive.ResponsiveContainer>
+                    </ChartContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Prescripciones por Mes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ChartContainer 
+                      className="w-full h-full"
+                      config={{
+                        count: {
+                          label: "Prescripciones",
+                          color: "#0ea5e9",
+                        },
+                      }}
+                    >
+                      <RechartsPrimitive.ResponsiveContainer width="100%" height={300}>
+                        <RechartsPrimitive.BarChart data={statsData?.prescriptionsByMonth || []}>
+                          <RechartsPrimitive.XAxis dataKey="month" />
+                          <RechartsPrimitive.YAxis />
+                          <RechartsPrimitive.Tooltip content={ChartTooltipContent} />
+                          <RechartsPrimitive.Bar dataKey="count" fill="#0ea5e9" />
+                        </RechartsPrimitive.BarChart>
+                      </RechartsPrimitive.ResponsiveContainer>
+                    </ChartContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle>Prescripciones por Usuario</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[300px]">
+                    <ChartContainer
+                      config={{
+                        count: {
+                          label: "Prescripciones por Usuario",
+                          color: "#0ea5e9",
+                        },
+                      }}
+                    >
+                      <RechartsPrimitive.ResponsiveContainer width="100%" height={300}>
+                        <RechartsPrimitive.BarChart data={statsData?.prescriptionsByUser || []}>
+                          <RechartsPrimitive.XAxis dataKey="userName" />
+                          <RechartsPrimitive.YAxis />
+                          <RechartsPrimitive.Tooltip content={ChartTooltipContent} />
+                          <RechartsPrimitive.Bar dataKey="count" fill="#0ea5e9" />
+                        </RechartsPrimitive.BarChart>
+                      </RechartsPrimitive.ResponsiveContainer>
+                    </ChartContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Users Content */}
+          <TabsContent value="users">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestión de Usuarios</CardTitle>
+                <CardDescription>Administra las cuentas de usuario del sistema</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex gap-4">
+                    <Input
+                      placeholder="Buscar por nombre o email..."
+                      value={filters.search}
+                      onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
+                      className="max-w-sm"
+                    />
+                  </div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Crear Usuario
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Crear Nuevo Usuario</DialogTitle>
+                        <DialogDescription>
+                          Ingresa los detalles del nuevo usuario
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.currentTarget);
+                        const userData = {
+                          fullName: formData.get('fullName'),
+                          email: formData.get('email'),
+                          password: formData.get('password'),
+                          role: formData.get('role'),
+                          plan: formData.get('plan'),
+                          status: 'active'
+                        };
+
+                        fetch('/api/admin/users', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json'
+                          },
+                          credentials: 'include',
+                          body: JSON.stringify(userData)
+                        })
+                        .then(response => {
+                          if (!response.ok) throw new Error('Error al crear usuario');
+                          return response.json();
+                        })
+                        .then(() => {
+                          toast({ title: "Usuario creado correctamente" });
+                          (e.target as HTMLFormElement).reset();
+                          (document.querySelector('[data-dialog-close]') as HTMLButtonElement)?.click();
+                        })
+                        .catch(error => {
+                          toast({ 
+                            title: "Error al crear usuario", 
+                            variant: "destructive" 
+                          });
+                        });
+                      }}>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="fullName">Nombre completo</Label>
+                            <Input id="fullName" name="fullName" required />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" name="email" type="email" required />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="password">Contraseña</Label>
+                            <Input id="password" name="password" type="password" required />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="role">Rol</Label>
+                            <Select name="role" defaultValue="user">
+                              <SelectTrigger>
+                                <SelectValue placeholder="Seleccionar rol" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="user">Usuario</SelectItem>
+                                <SelectItem value="admin">Administrador</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="plan">Plan</Label>
+                            <Select name="plan" defaultValue="basic">
+                              <SelectTrigger>
+                                <SelectValue placeholder="Seleccionar plan" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="basic">Básico</SelectItem>
+                                <SelectItem value="pro">Pro</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button type="submit">Crear Usuario</Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="flex gap-4 mb-4">
+                  <Select
+                    value={filters.plan}
+                    onValueChange={(value) => setFilters(f => ({ ...f, plan: value }))}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filtrar por plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los planes</SelectItem>
+                      <SelectItem value="basic">Básico</SelectItem>
+                      <SelectItem value="pro">Pro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={filters.status}
+                    onValueChange={(value) => setFilters(f => ({ ...f, status: value }))}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filtrar por estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los estados</SelectItem>
+                      <SelectItem value="active">Activo</SelectItem>
+                      <SelectItem value="suspended">Suspendido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Usuario</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Plan</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead>Rol</TableHead>
+                        <TableHead>Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredUsers?.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell>{user.fullName}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>
+                            <Badge variant={user.plan === "pro" ? "default" : "secondary"}>
+                              {user.plan === "pro" ? "Pro" : "Básico"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.status === "active" ? "success" : "destructive"}>
+                              {user.status === "active" ? "Activo" : "Suspendido"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={user.role}
+                              onValueChange={(value) => 
+                                updateUserMutation.mutate({ userId: user.id, data: { role: value } })
+                              }
+                            >
+                              <SelectTrigger className="w-[120px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="user">Usuario</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const newStatus = user.status === "active" ? "suspended" : "active";
+                                  updateUserMutation.mutate({ 
+                                    userId: user.id, 
+                                    data: { status: newStatus } 
+                                  });
+                                }}
+                              >
+                                {user.status === "active" ? "Suspender" : "Activar"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm("¿Estás seguro de eliminar este usuario?")) {
+                                    deleteUserMutation.mutate(user.id);
+                                  }
+                                }}
+                              >
+                                Eliminar
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="appearance">
+            <Card>
+              <CardHeader>
+                <CardTitle>Apariencia del PDF</CardTitle>
+                <CardDescription>
+                  Personaliza cómo se verán los documentos PDF generados por todos los usuarios
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Logo Settings */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Logo</h3>
+                  <div className="flex items-center gap-4">
+                    <div className="w-32 h-32 border-2 border-dashed rounded-lg flex items-center justify-center">
+                      {localStorage.getItem('pdfLogo') ? (
+                        <img
+                          src={localStorage.getItem('pdfLogo')}
+                          alt="Logo PDF"
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      ) : (
+                        <PlusCircle className="w-8 h-8 text-gray-400" />
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => document.getElementById('logo-upload')?.click()}
+                      >
+                        Subir logo
+                      </Button>
+                      {localStorage.getItem('pdfLogo') && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            localStorage.removeItem('pdfLogo');
+                            window.location.reload();
+                          }}
+                        >
+                          Eliminar logo
+                        </Button>
+                      )}
+                      <input
+                        type="file"
+                        id="logo-upload"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              localStorage.setItem('pdfLogo', reader.result as string);
+                              window.location.reload();
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Settings */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Pie de página</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="footer-text">Texto del pie de página</Label>
+                    <Input
+                      id="footer-text"
+                      placeholder="© 2024 MediCina TCM - Sistema Profesional de Medicina China"
+                      defaultValue={localStorage.getItem('pdfFooter') || '© 2024 MediCina TCM - Sistema Profesional de Medicina China'}
+                      onChange={(e) => {
+                        localStorage.setItem('pdfFooter', e.target.value);
+                      }}
+                    />
+                    <p className="text-sm text-gray-500">
+                      Este texto aparecerá en el pie de página de todos los PDFs generados.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="database">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestión de Base de Datos</CardTitle>
+                <CardDescription>Administra y mantén la base de datos del sistema</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-medium">Backup Automático</h3>
+                      <p className="text-sm text-muted-foreground">Programa backups automáticos de la base de datos</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  <Select defaultValue="daily">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Frecuencia de backup" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hourly">Cada hora</SelectItem>
+                      <SelectItem value="daily">Diario</SelectItem>
+                      <SelectItem value="weekly">Semanal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button>Crear Backup Manual</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="security">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuración de Seguridad</CardTitle>
+                <CardDescription>Gestiona la seguridad del sistema</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Autenticación de dos factores</Label>
+                      <p className="text-sm text-muted-foreground">Requerir 2FA para todos los administradores</p>
+                    </div>
+                    <Switch />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Bloqueo de IP</Label>
+                      <p className="text-sm text-muted-foreground">Bloquear IPs después de intentos fallidos</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="config">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuración del Sistema</CardTitle>
+                <CardDescription>Ajusta la configuración general de la aplicación</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Modo Mantenimiento</Label>
+                      <p className="text-sm text-muted-foreground">Activa el modo mantenimiento del sistema</p>
+                    </div>
+                    <Switch />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Registro de Usuarios</Label>
+                      <p className="text-sm text-muted-foreground">Permite el registro de nuevos usuarios</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configuración de Notificaciones</CardTitle>
+                <CardDescription>Gestiona las notificaciones del sistema</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Notificaciones por Email</Label>
+                      <p className="text-sm text-muted-foreground">Enviar notificaciones por correo</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Notificaciones Push</Label>
+                      <p className="text-sm text-muted-foreground">Activar notificaciones push</p>
+                    </div>
+                    <Switch />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </Layout>
+  );
+}
