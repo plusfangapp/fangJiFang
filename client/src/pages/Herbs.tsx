@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 import HerbPreview from "@/components/HerbPreview";
 import HerbImporter from "@/components/HerbImporter";
-import { Herb } from "@shared/schema";
+import { Herb } from "@/types";
 import {
   Select,
   SelectContent,

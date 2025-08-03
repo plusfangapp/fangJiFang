@@ -7,7 +7,7 @@ import Layout from "@/components/Layout";
 import { useLanguage } from "@/lib/language-context";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Herb, Formula, Patient, Prescription } from "@shared/schema";
+import { Herb, Formula, Patient, Prescription } from "@/types";
 
 export default function Dashboard() {
   const { t } = useLanguage();

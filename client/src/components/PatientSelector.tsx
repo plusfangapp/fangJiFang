@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Patient } from "@shared/schema";
+import { Patient } from "@/types";
 
 interface PatientSelectorProps {
   onSelectPatient: (patient: Patient) => void;

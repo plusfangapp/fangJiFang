@@ -44,7 +44,7 @@ import {
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
-import { Formula } from "@shared/schema";
+import { Formula } from "@/types";
 import { useLanguage } from "@/lib/language-context";
 
 export default function FormulasPage() {

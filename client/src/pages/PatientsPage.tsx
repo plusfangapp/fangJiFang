@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Search, Users, UserPlus, Edit, Trash2 } from "lucide-react";
 import Layout from "@/components/Layout";
-import { Patient } from "@shared/schema";
+import { Patient } from "@/types";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 
 export default function PatientsPage() {

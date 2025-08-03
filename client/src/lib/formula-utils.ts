@@ -1,4 +1,4 @@
-import { FormulaWithHerbs, Formula, Herb } from "@shared/schema";
+import { FormulaWithHerbs, Formula, Herb } from "@/types";
 
 /**
  * Calcula el total de gramos para una fórmula

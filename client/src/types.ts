@@ -1,4 +1,4 @@
-import { Herb, Formula, FormulaWithHerbs } from "@shared/schema";
+export * from './types/index'
 
 // Elementos de una prescripción
 export interface PrescriptionItem {

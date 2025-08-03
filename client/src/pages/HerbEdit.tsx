@@ -25,7 +25,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Herb, insertHerbSchema } from "@shared/schema";
+import { Herb, insertHerbSchema } from "@/types";
 import { useFieldArray } from "react-hook-form";
 import {
   Select,

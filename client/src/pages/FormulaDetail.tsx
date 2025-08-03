@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Layout from "@/components/Layout";
 import ChipDisplay from "@/components/ChipDisplay";
-import { Formula } from "@shared/schema";
+import { Formula } from "@/types";
 
 export default function FormulaDetail() {
   const { id } = useParams();

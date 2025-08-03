@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileText, Plus, Search, Calendar } from "lucide-react";
 import Layout from "@/components/Layout";
-import { Prescription } from "@shared/schema";
+import { Prescription } from "@/types";
 
 export default function PrescriptionsPage() {
   const [searchTerm, setSearchTerm] = useState("");

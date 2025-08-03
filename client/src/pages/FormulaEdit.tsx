@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Formula, insertFormulaSchema } from "@shared/schema";
+import { Formula, insertFormulaSchema } from "@/types";
 
 // Extendemos el esquema para validación específica del frontend
 const formulaSchema = insertFormulaSchema.extend({

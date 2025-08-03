@@ -8,7 +8,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import Layout from "@/components/Layout";
 import PrintablePrescription from "@/components/PrintablePrescription";
 import { PrescriptionData, PrescriptionItem } from "@/types";
-import { FormulaWithHerbs } from "@shared/schema";
+import { FormulaWithHerbs } from "@/types";
 import { useRef } from "react";
 import { useReactToPrint } from "react-to-print";
 import jsPDF from "jspdf";

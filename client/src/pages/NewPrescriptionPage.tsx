@@ -18,7 +18,7 @@ import LibraryPanel from "@/components/LibraryPanel";
 import PrescriptionBuilder from "@/components/PrescriptionBuilder";
 import PrintablePrescription from "@/components/PrintablePrescription";
 import PrescriptionPreviewDialog from "@/components/PrescriptionPreviewDialog";
-import { Herb, Formula, FormulaWithHerbs } from "@shared/schema";
+import { Herb, Formula, FormulaWithHerbs } from "@/types";
 import { PrescriptionData, HerbWithGrams, PrescriptionItem } from "@/types";
 
 export default function NewPrescriptionPage() {

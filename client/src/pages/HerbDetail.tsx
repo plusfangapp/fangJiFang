@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/Layout";
-import { Herb } from "@shared/schema";
+import { Herb } from "@/types";
 
 export default function HerbDetail() {
   const { id } = useParams();

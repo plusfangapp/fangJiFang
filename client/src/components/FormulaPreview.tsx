@@ -12,7 +12,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import ChipDisplay from "@/components/ChipDisplay";
-import { FormulaWithHerbs } from "@shared/schema";
+import { FormulaWithHerbs } from "@/types";
 
 interface FormulaPreviewProps {
   formula: any; // Usando any para evitar problemas de tipado con el schema
