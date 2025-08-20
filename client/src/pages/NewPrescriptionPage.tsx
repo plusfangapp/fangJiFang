@@ -53,13 +53,17 @@ export default function NewPrescriptionPage() {
   });
 
   // Fetch herbs and formulas
-  const { data: herbs = [] } = useQuery<Herb[]>({
+  const { data: herbs = [], isLoading: herbsLoading, error: herbsError } = useQuery<Herb[]>({
     queryKey: ["/api/herbs"],
   });
 
-  const { data: formulas = [] } = useQuery<FormulaWithHerbs[]>({
+  const { data: formulas = [], isLoading: formulasLoading, error: formulasError } = useQuery<FormulaWithHerbs[]>({
     queryKey: ["/api/formulas"],
   });
+
+  // Debug logging - remove in production
+  // console.log("Herbs data:", herbs.length, "items loaded:", herbs.slice(0, 2));
+  // console.log("Formulas data:", formulas.length, "items loaded:", formulas.slice(0, 2));
 
   // Cargar datos del paciente si viene un ID en la URL
   const { data: patientData } = useQuery<any>({
@@ -129,8 +133,8 @@ export default function NewPrescriptionPage() {
         patientId: patientData.id,
         patientName: patientData.name,
         patientEmail: patientData.identifier || "",
-        patientPhone: patientData.contactInfo || "",
-        patientAddress: patientData.medicalHistory || ""
+        patientPhone: patientData.contact_info || "",
+        patientAddress: patientData.medical_history || ""
       }));
 
       // Consultar prescripciones existentes para actualizar el número
@@ -166,9 +170,15 @@ export default function NewPrescriptionPage() {
   // Mutación para crear un nuevo paciente
   const createPatientMutation = useMutation({
     mutationFn: async (patientData: any) => {
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('patients')
-        .insert(patientData)
+        .insert({ ...patientData, user_id: user.id })
         .select()
         .single();
       
@@ -230,19 +240,13 @@ export default function NewPrescriptionPage() {
 
       // Después de crear el paciente, guardamos la prescripción con el nuevo ID de paciente
       const prescriptionData = {
-        date: currentPrescription.date,
-        patientId: newPatient.id,
-        formulaId: formulaId, // Asignamos el formulaId o null
+        patient_id: newPatient.id,
+        formula_id: formulaId, // Asignamos el formulaId o null
         name: prescriptionName,
-        diagnosis: "",
+        date_created: new Date().toISOString(),
         notes: currentPrescription.notes,
         status: "active",
-        customFormula: customFormula, // Añadimos la información detallada
-        items: currentPrescription.items.map(item => ({
-          type: item.type,
-          id: item.id,
-          quantity: item.quantity
-        }))
+        custom_formula: customFormula // Añadimos la información detallada
       };
 
       // Invalidamos las consultas antes de guardar
@@ -263,9 +267,15 @@ export default function NewPrescriptionPage() {
   // Mutación para guardar la prescripción
   const savePrescriptionMutation = useMutation({
     mutationFn: async (prescription: any) => {
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('prescriptions')
-        .insert(prescription)
+        .insert({ ...prescription, user_id: user.id })
         .select()
         .single();
       
@@ -276,7 +286,6 @@ export default function NewPrescriptionPage() {
       toast({
         title: "Prescripción guardada",
         description: "La prescripción ha sido guardada correctamente.",
-        variant: "success",
       });
 
       // Invalidar consultas para refrescar los datos
@@ -332,7 +341,7 @@ export default function NewPrescriptionPage() {
 
       toast({
         title: "Hierba actualizada",
-        description: `La cantidad de ${herb.pinyinName} ha sido incrementada en ${incrementAmount}.`,
+        description: `La cantidad de ${herb.pinyinName || herb.pinyin_name || 'hierba'} ha sido incrementada en ${incrementAmount}.`,
       });
     } else {
       // Si hay información de gramos, la usamos como cantidad inicial
@@ -353,7 +362,7 @@ export default function NewPrescriptionPage() {
 
       toast({
         title: "Hierba añadida",
-        description: `${herb.pinyinName} ha sido añadida a la prescripción con cantidad ${initialQuantity}.`,
+        description: `${herb.pinyinName || herb.pinyin_name || 'Hierba'} ha sido añadida a la prescripción con cantidad ${initialQuantity}.`,
       });
     }
   };
@@ -1105,19 +1114,13 @@ export default function NewPrescriptionPage() {
       };
 
       const prescriptionData = {
-        date: currentPrescription.date,
-        patientId: parseInt(currentPrescription.patientId.toString(), 10), // Aseguramos que sea un número
-        formulaId: formulaId, // Asignamos el formulaId o null
+        patient_id: parseInt(currentPrescription.patientId.toString(), 10), // Aseguramos que sea un número
+        formula_id: formulaId, // Asignamos el formulaId o null
         name: prescriptionName,
-        diagnosis: "", // Añadir campo de diagnóstico en la interfaz
+        date_created: new Date().toISOString(),
         notes: currentPrescription.notes,
         status: "active",
-        customFormula: customFormula, // Añadimos la información detallada
-        items: currentPrescription.items.map(item => ({
-          type: item.type,
-          id: item.id,
-          quantity: item.quantity
-        }))
+        custom_formula: customFormula // Añadimos la información detallada
       };
 
       // Mostramos un mensaje de carga
@@ -1142,8 +1145,8 @@ export default function NewPrescriptionPage() {
       const newPatientData = {
         name: currentPrescription.patientName,
         identifier: currentPrescription.patientEmail || null,
-        contactInfo: currentPrescription.patientPhone || null,
-        medicalHistory: currentPrescription.patientAddress || null
+        contact_info: currentPrescription.patientPhone || null,
+        medical_history: currentPrescription.patientAddress || null
       };
 
       // Mostramos un mensaje de carga
@@ -1194,6 +1197,21 @@ export default function NewPrescriptionPage() {
             <span>Save Prescription</span>
           </Button>
         </div>
+
+        {/* Debug Information */}
+        {(herbsLoading || formulasLoading) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-blue-800">Loading herbs and formulas...</p>
+          </div>
+        )}
+        
+        {(herbsError || formulasError) && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800">
+              Error loading data: {herbsError?.message || formulasError?.message}
+            </p>
+          </div>
+        )}
 
         <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6`}>
           {/* Panel de biblioteca */}

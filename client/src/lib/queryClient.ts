@@ -48,11 +48,19 @@ export const queryClient = new QueryClient({
           try {
             let data;
             
+            // Get current authenticated user
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            if (authError || !user) {
+              throw new Error('User not authenticated');
+            }
+
             switch (endpoint) {
               case 'herbs':
                 const { data: herbs, error: herbsError } = await supabase
                   .from('herbs')
-                  .select('*');
+                  .select('*')
+                  .eq('user_id', user.id)
+                  .order('pinyin_name');
                 if (herbsError) throw herbsError;
                 data = herbs;
                 break;
@@ -60,7 +68,9 @@ export const queryClient = new QueryClient({
               case 'formulas':
                 const { data: formulas, error: formulasError } = await supabase
                   .from('formulas')
-                  .select('*');
+                  .select('*')
+                  .eq('user_id', user.id)
+                  .order('pinyin_name');
                 if (formulasError) throw formulasError;
                 data = formulas;
                 break;
@@ -68,7 +78,9 @@ export const queryClient = new QueryClient({
               case 'patients':
                 const { data: patients, error: patientsError } = await supabase
                   .from('patients')
-                  .select('*');
+                  .select('*')
+                  .eq('user_id', user.id)
+                  .order('name');
                 if (patientsError) throw patientsError;
                 data = patients;
                 break;
@@ -76,7 +88,13 @@ export const queryClient = new QueryClient({
               case 'prescriptions':
                 const { data: prescriptions, error: prescriptionsError } = await supabase
                   .from('prescriptions')
-                  .select('*');
+                  .select(`
+                    *,
+                    patient:patients(name),
+                    formula:formulas(pinyin_name, chinese_name)
+                  `)
+                  .eq('user_id', user.id)
+                  .order('date_created', { ascending: false });
                 if (prescriptionsError) throw prescriptionsError;
                 data = prescriptions;
                 break;
@@ -84,14 +102,37 @@ export const queryClient = new QueryClient({
               default:
                 // For specific ID requests
                 if (endpoint.includes('/')) {
-                  const [table, id] = endpoint.split('/');
-                  const { data: item, error } = await supabase
-                    .from(table)
-                    .select('*')
-                    .eq('id', id)
-                    .single();
-                  if (error) throw error;
-                  data = item;
+                  const parts = endpoint.split('/');
+                  
+                  if (parts.length === 2) {
+                    // Simple ID request like "patients/123"
+                    const [table, id] = parts;
+                    const { data: item, error } = await supabase
+                      .from(table)
+                      .select('*')
+                      .eq('id', id)
+                      .eq('user_id', user.id)
+                      .single();
+                    if (error) throw error;
+                    data = item;
+                  } else if (parts.length === 3 && parts[0] === 'patients' && parts[2] === 'prescriptions') {
+                    // Handle patient prescriptions like "patients/123/prescriptions"
+                    const patientId = parts[1];
+                    const { data: patientPrescriptions, error } = await supabase
+                      .from('prescriptions')
+                      .select(`
+                        *,
+                        patient:patients(name),
+                        formula:formulas(pinyin_name, chinese_name)
+                      `)
+                      .eq('patient_id', patientId)
+                      .eq('user_id', user.id)
+                      .order('date_created', { ascending: false });
+                    if (error) throw error;
+                    data = patientPrescriptions;
+                  } else {
+                    throw new Error(`Unknown endpoint: ${endpoint}`);
+                  }
                 } else {
                   throw new Error(`Unknown endpoint: ${endpoint}`);
                 }

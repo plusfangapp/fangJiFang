@@ -200,9 +200,15 @@ export default function HerbEdit() {
 
       if (isNewHerb) {
         // Para crear una nueva hierba
+        // Get current user
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+          throw new Error('User not authenticated');
+        }
+
         const { data: newHerb, error } = await supabase
           .from('herbs')
-          .insert(cleanData)
+          .insert({ ...cleanData, user_id: user.id })
           .select()
           .single();
         

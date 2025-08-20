@@ -83,7 +83,7 @@ export default function Herbs() {
       (herb.flavor?.toLowerCase().includes(selectedFlavor.toLowerCase()));
     
     const matchesMeridian = selectedMeridian === "all" || 
-      (Array.isArray(herb.meridians) && herb.meridians.some(m => 
+      (Array.isArray(herb.meridians) && herb.meridians.some((m: string) => 
         m.toLowerCase().includes(selectedMeridian.toLowerCase())
       ));
 
@@ -141,6 +141,8 @@ export default function Herbs() {
             </Button>
           </div>
         </div>
+
+
 
         <div className="flex flex-col space-y-4 mb-4">
           <div className="relative">

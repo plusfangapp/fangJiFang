@@ -106,8 +106,8 @@ export default function PrescriptionBuilder({
                         updatePrescriptionInfo("patientId", patient.id.toString());
                         updatePrescriptionInfo("patientName", patient.name);
                         updatePrescriptionInfo("patientEmail", patient.identifier || "");
-                        updatePrescriptionInfo("patientPhone", patient.contactInfo || "");
-                        updatePrescriptionInfo("patientAddress", patient.medicalHistory || "");
+                        updatePrescriptionInfo("patientPhone", patient.contact_info || "");
+                        updatePrescriptionInfo("patientAddress", patient.medical_history || "");
                       }}
                       updatePrescriptionNumber={(number) => {
                         updatePrescriptionInfo("number", number);
@@ -228,8 +228,8 @@ export default function PrescriptionBuilder({
                                     <div className="flex items-center gap-2">
                                       <h4 className="font-medium">
                                         {isFormula 
-                                          ? (item.formula?.pinyinName || "") 
-                                          : (item.herb?.pinyinName || "")}
+                                          ? (item.formula?.pinyinName || item.formula?.pinyin_name || "") 
+                                          : (item.herb?.pinyinName || item.herb?.pinyin_name || "")}
                                       </h4>
                                       {/* Indicadores visuales de advertencias */}
                                       {/* Indicadores específicos de contraindicaciones y precauciones */}

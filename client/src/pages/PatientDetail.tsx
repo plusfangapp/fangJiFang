@@ -55,8 +55,8 @@ export default function PatientDetail() {
       notes: prescription?.notes || "",
       patientName: patient?.name || "",
       patientEmail: patient?.identifier || "",
-      patientPhone: patient?.contactInfo || "",
-      patientAddress: patient?.medicalHistory || "",
+      patientPhone: patient?.contact_info || "",
+      patientAddress: patient?.medical_history || "",
       instructions: prescription?.instructions || "",
       duration: prescription?.duration || "",
       medicalConditions: {
@@ -167,12 +167,12 @@ export default function PatientDetail() {
   // Las prescripciones ya están ordenadas en la función sortedPrescriptions
 
   // Ordenar prescripciones por fecha de creación (más reciente primero)
-  const sortedPrescriptions = prescriptions?.sort((a, b) => {
+  const sortedPrescriptions = Array.isArray(prescriptions) ? prescriptions.sort((a, b) => {
     // Usar dateCreated si está disponible, sino comparar por id
     const dateA = a.dateCreated ? new Date(a.dateCreated).getTime() : a.id;
     const dateB = b.dateCreated ? new Date(b.dateCreated).getTime() : b.id;
     return dateB - dateA;
-  });
+  }) : [];
 
   if (isLoadingPatient) {
     return (
@@ -241,7 +241,7 @@ export default function PatientDetail() {
               <div className="text-sm text-muted-foreground">Teléfono</div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <div>{patient.contactInfo || "No especificado"}</div>
+                <div>{patient.contact_info || "No especificado"}</div>
               </div>
             </div>
             

@@ -48,9 +48,15 @@ export default function PatientsPage() {
   // Mutación para crear un nuevo paciente
   const createPatientMutation = useMutation({
     mutationFn: async (patientData: any) => {
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('patients')
-        .insert(patientData)
+        .insert({ ...patientData, user_id: user.id })
         .select()
         .single();
       
@@ -107,11 +113,11 @@ export default function PatientsPage() {
     // Preparar datos para enviar - convertimos los campos a los que espera la base de datos
     const patientData = {
       name: newPatient.name,
-      contactInfo: newPatient.phone,        // Guardamos el teléfono en contactInfo
-      identifier: newPatient.email,         // Guardamos el email en identifier
-      medicalHistory: newPatient.address,   // Guardamos la dirección en medicalHistory
-      gender: null,                         // Campos obligatorios pero que no usamos
-      dateOfBirth: null                     // Campos obligatorios pero que no usamos
+      contact_info: newPatient.phone,        // Guardamos el teléfono en contact_info
+      identifier: newPatient.email,          // Guardamos el email en identifier
+      medical_history: newPatient.address,   // Guardamos la dirección en medical_history
+      gender: null,                          // Campos obligatorios pero que no usamos
+      date_of_birth: null                    // Campos obligatorios pero que no usamos
     };
 
     // Enviar los datos
@@ -123,7 +129,7 @@ export default function PatientsPage() {
     return (
       patient.name.toLowerCase().includes(searchTermLower) || 
       (patient.identifier && patient.identifier.toLowerCase().includes(searchTermLower)) ||
-      (patient.contactInfo && patient.contactInfo.toLowerCase().includes(searchTermLower))
+      (patient.contact_info && patient.contact_info.toLowerCase().includes(searchTermLower))
     );
   });
 
@@ -274,12 +280,12 @@ export default function PatientsPage() {
 
                           {/* Phone */}
                           <div className="text-sm text-gray-700 truncate">
-                            {patient.contactInfo || "-"}
+                            {patient.contact_info || "-"}
                           </div>
 
                           {/* Address */}
                           <div className="text-sm text-gray-700 truncate">
-                            {patient.medicalHistory || "-"}
+                            {patient.medical_history || "-"}
                           </div>
 
                           {/* Actions */}

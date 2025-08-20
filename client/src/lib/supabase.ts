@@ -16,6 +16,7 @@ export interface Database {
       herbs: {
         Row: {
           id: number
+          user_id?: string
           pinyin_name: string
           chinese_name: string
           latin_name?: string
@@ -58,6 +59,7 @@ export interface Database {
         }
         Insert: {
           id?: number
+          user_id?: string
           pinyin_name: string
           chinese_name: string
           latin_name?: string
@@ -100,6 +102,7 @@ export interface Database {
         }
         Update: {
           id?: number
+          user_id?: string
           pinyin_name?: string
           chinese_name?: string
           latin_name?: string
@@ -144,6 +147,7 @@ export interface Database {
       formulas: {
         Row: {
           id: number
+          user_id?: string
           pinyin_name: string
           chinese_name: string
           english_name?: string
@@ -164,6 +168,7 @@ export interface Database {
         }
         Insert: {
           id?: number
+          user_id?: string
           pinyin_name: string
           chinese_name: string
           english_name?: string
@@ -184,6 +189,7 @@ export interface Database {
         }
         Update: {
           id?: number
+          user_id?: string
           pinyin_name?: string
           chinese_name?: string
           english_name?: string
@@ -206,6 +212,7 @@ export interface Database {
       patients: {
         Row: {
           id: number
+          user_id?: string
           name: string
           identifier?: string
           date_of_birth?: string
@@ -218,6 +225,7 @@ export interface Database {
         }
         Insert: {
           id?: number
+          user_id?: string
           name: string
           identifier?: string
           date_of_birth?: string
@@ -230,6 +238,7 @@ export interface Database {
         }
         Update: {
           id?: number
+          user_id?: string
           name?: string
           identifier?: string
           date_of_birth?: string
@@ -244,6 +253,7 @@ export interface Database {
       prescriptions: {
         Row: {
           id: number
+          user_id?: string
           patient_id: number
           formula_id?: number
           custom_formula?: any
@@ -256,6 +266,7 @@ export interface Database {
         }
         Insert: {
           id?: number
+          user_id?: string
           patient_id: number
           formula_id?: number
           custom_formula?: any
@@ -268,6 +279,7 @@ export interface Database {
         }
         Update: {
           id?: number
+          user_id?: string
           patient_id?: number
           formula_id?: number
           custom_formula?: any

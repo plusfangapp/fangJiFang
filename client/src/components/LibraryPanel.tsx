@@ -118,29 +118,52 @@ export default function LibraryPanel({
   const herbCategories = Array.from(new Set(herbs.map(h => h.category).filter(Boolean)));
   const formulaCategories = Array.from(new Set(formulas.map(f => f.category).filter(Boolean)));
 
+  // Check for test data
+  const hasTestData = herbs.some(h => 
+    (h.pinyinName || h.pinyin_name || '').toLowerCase().includes('sad') ||
+    (h.pinyinName || h.pinyin_name || '').toLowerCase().includes('asd')
+  ) || formulas.some(f => 
+    (f.pinyinName || f.pinyin_name || '').toLowerCase().includes('asd')
+  );
+
   const filteredHerbs = herbs.filter(herb => {
+    // Handle both camelCase and snake_case field names
+    const pinyinName = herb.pinyinName || herb.pinyin_name;
+    const latinName = herb.latinName || herb.latin_name;
+    const englishName = herb.englishName || herb.english_name;
+    
     const searchMatch = 
       !herbSearch || 
-      herb.pinyinName?.toLowerCase().includes(herbSearch.toLowerCase()) ||
-      herb.latinName?.toLowerCase().includes(herbSearch.toLowerCase()) ||
-      herb.englishName?.toLowerCase().includes(herbSearch.toLowerCase());
+      pinyinName?.toLowerCase().includes(herbSearch.toLowerCase()) ||
+      latinName?.toLowerCase().includes(herbSearch.toLowerCase()) ||
+      englishName?.toLowerCase().includes(herbSearch.toLowerCase());
 
     const categoryMatch = 
       herbCategoryFilter === "all" || 
-      herb.category === herbCategoryFilter;
+      herb.category === herbCategoryFilter ||
+      !herb.category; // Also include herbs without categories
+
+
 
     return searchMatch && categoryMatch;
   });
 
   const filteredFormulas = processedFormulas.filter(formula => {
+    // Handle both camelCase and snake_case field names
+    const pinyinName = formula.pinyinName || formula.pinyin_name;
+    const englishName = formula.englishName || formula.english_name;
+    
     const searchMatch = 
       !formulaSearch || 
-      formula.pinyinName?.toLowerCase().includes(formulaSearch.toLowerCase()) ||
-      formula.englishName?.toLowerCase().includes(formulaSearch.toLowerCase());
+      pinyinName?.toLowerCase().includes(formulaSearch.toLowerCase()) ||
+      englishName?.toLowerCase().includes(formulaSearch.toLowerCase());
 
     const categoryMatch = 
       formulaCategoryFilter === "all" || 
-      formula.category === formulaCategoryFilter;
+      formula.category === formulaCategoryFilter ||
+      !formula.category; // Also include formulas without categories
+
+
 
     return searchMatch && categoryMatch;
   });
@@ -200,6 +223,10 @@ export default function LibraryPanel({
               </TabsTrigger>
             </TabsList>
           </div>
+          
+
+
+
 
           <TabsContent value="herbs" className="m-0 flex-1 overflow-hidden">
             <div className="h-full flex flex-col space-y-4">
@@ -367,9 +394,17 @@ export default function LibraryPanel({
 
               <ScrollArea className="flex-1 overflow-y-auto pr-3">
                 <div>
+
+                  
                   {filteredHerbs.length === 0 ? (
                     <div className="text-center py-12">
                       <p className="text-muted-foreground">No se encontraron hierbas</p>
+                      {herbs.length > 0 && (
+                        <div className="mt-2 text-xs text-gray-500">
+                          <p>Available herbs not showing due to filters.</p>
+                          <p>Total herbs in database: {herbs.length}</p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="bg-white">
@@ -390,15 +425,17 @@ export default function LibraryPanel({
                             <div className="flex justify-between items-start">
                               <div className="w-full">
                                 <div className="flex items-center gap-2">
-                                  <h4 className="font-medium text-gray-900">{herb.pinyinName}</h4>
+                                  <h4 className="font-medium text-gray-900">
+                                    {herb.pinyinName || herb.pinyin_name || 'Unknown Herb'}
+                                  </h4>
                                   <div 
                                     className={`h-3 w-3 rounded-full ${getNatureColor(herb.nature)}`}
                                     title={herb.nature}
                                   />
                                 </div>
-                                {herb.latinName && (
+                                {(herb.latinName || herb.latin_name) && (
                                   <div className="text-xs text-gray-400 italic">
-                                    {herb.latinName}
+                                    {herb.latinName || herb.latin_name}
                                   </div>
                                 )}
                               </div>
@@ -485,9 +522,17 @@ export default function LibraryPanel({
 
               <ScrollArea className="flex-1 overflow-y-auto pr-3">
                 <div>
+
+                  
                   {filteredFormulas.length === 0 ? (
                     <div className="text-center py-12">
                       <p className="text-muted-foreground">No se encontraron fórmulas</p>
+                      {formulas.length > 0 && (
+                        <div className="mt-2 text-xs text-gray-500">
+                          <p>Available formulas not showing due to filters.</p>
+                          <p>Total formulas in database: {formulas.length}</p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="bg-white divide-y divide-gray-200">
@@ -508,11 +553,13 @@ export default function LibraryPanel({
                             <div className="flex justify-between items-start">
                               <div className="w-full">
                                   <div className="flex items-center gap-2">
-                                    <h4 className="font-medium text-gray-900">{formula.pinyinName}</h4>
+                                    <h4 className="font-medium text-gray-900">
+                                      {formula.pinyinName || formula.pinyin_name || 'Unknown Formula'}
+                                    </h4>
                                   </div>
-                                  {formula.englishName && (
+                                  {(formula.englishName || formula.english_name) && (
                                     <div className="text-xs text-gray-400 italic">
-                                      {formula.englishName}
+                                      {formula.englishName || formula.english_name}
                                     </div>
                                   )}
                               </div>

@@ -5,7 +5,7 @@ import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { apiRequest } from '@/lib/queryClient';
+import { supabase } from '@/lib/supabase';
 
 // Componentes de la UI
 import {
@@ -55,35 +55,31 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     try {
-      // Convertir email a identifier para que coincida con lo que espera el servidor
-      const loginData = { 
-        identifier: data.email, 
-        password: data.password 
-      };
-      const response = await apiRequest('POST', '/api/auth/login', loginData);
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
 
-      if (response.ok) {
-        const responseData = await response.json();
-        
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (authData.user) {
         // Invalidar cualquier query relacionada con autenticación
         queryClient.invalidateQueries({queryKey: ['/api/auth/profile']});
         
         toast({
           title: 'Inicio de sesión exitoso',
           description: '¡Bienvenido de nuevo!',
-          variant: 'default',
         });
         
         // Redirigir a la página principal
         setLocation('/');
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Credenciales incorrectas');
       }
     } catch (error) {
       toast({
         title: 'Error al iniciar sesión',
-        description: error instanceof Error ? error.message : 'Ha ocurrido un error',
+        description: error instanceof Error ? error.message : 'Credenciales incorrectas. Verifica tu email y contraseña.',
         variant: 'destructive',
       });
     } finally {

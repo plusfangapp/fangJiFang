@@ -5,7 +5,7 @@ import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { apiRequest } from '@/lib/queryClient';
+import { supabase } from '@/lib/supabase';
 
 // Componentes de la UI
 import {
@@ -63,34 +63,39 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterFormValues) => {
     setIsSubmitting(true);
     try {
-      const response = await apiRequest('POST', '/api/auth/register', {
-        fullName: data.fullName,
+      const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
-      } as any);
+        options: {
+          data: {
+            full_name: data.fullName,
+          }
+        }
+      });
 
-      if (response.ok) {
-        const responseData = await response.json();
-        
-        // Invalidar cualquier query relacionada con autenticación
-        queryClient.invalidateQueries({queryKey: ['/api/auth/profile']});
-        
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (authData.user) {
         toast({
           title: 'Registro exitoso',
-          description: 'Tu cuenta ha sido creada correctamente',
-          variant: 'default',
+          description: authData.user.email_confirmed_at 
+            ? 'Tu cuenta ha sido creada correctamente' 
+            : 'Revisa tu email para confirmar tu cuenta',
         });
         
-        // Redirigir a la página principal
-        setLocation('/');
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al registrar usuario');
+        // If user is already confirmed, redirect to dashboard, otherwise to login
+        if (authData.user.email_confirmed_at) {
+          setLocation('/');
+        } else {
+          setLocation('/login');
+        }
       }
     } catch (error) {
       toast({
         title: 'Error al registrar',
-        description: error instanceof Error ? error.message : 'Ha ocurrido un error',
+        description: error instanceof Error ? error.message : 'Ha ocurrido un error durante el registro',
         variant: 'destructive',
       });
     } finally {

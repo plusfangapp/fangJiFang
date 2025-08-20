@@ -14,6 +14,7 @@ async function setupDatabase() {
       sql: `
         CREATE TABLE IF NOT EXISTS herbs (
           id SERIAL PRIMARY KEY,
+          user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
           pinyin_name TEXT NOT NULL,
           chinese_name TEXT NOT NULL,
           latin_name TEXT,
@@ -63,11 +64,30 @@ async function setupDatabase() {
       console.log('✅ Herbs table created')
     }
 
+    // Add user_id column to herbs if it doesn't exist
+    const { error: herbsAlterError } = await supabase.rpc('exec_sql', {
+      sql: `
+        DO $$ 
+        BEGIN 
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'herbs' AND column_name = 'user_id') THEN
+            ALTER TABLE herbs ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+          END IF;
+        END $$;
+      `
+    })
+    
+    if (herbsAlterError) {
+      console.log('Herbs alter table error:', herbsAlterError)
+    } else {
+      console.log('✅ Herbs user_id column added')
+    }
+
     // Create formulas table
     const { error: formulasError } = await supabase.rpc('exec_sql', {
       sql: `
         CREATE TABLE IF NOT EXISTS formulas (
           id SERIAL PRIMARY KEY,
+          user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
           pinyin_name TEXT NOT NULL,
           chinese_name TEXT NOT NULL,
           english_name TEXT,
@@ -95,11 +115,30 @@ async function setupDatabase() {
       console.log('✅ Formulas table created')
     }
 
+    // Add user_id column to formulas if it doesn't exist
+    const { error: formulasAlterError } = await supabase.rpc('exec_sql', {
+      sql: `
+        DO $$ 
+        BEGIN 
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'formulas' AND column_name = 'user_id') THEN
+            ALTER TABLE formulas ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+          END IF;
+        END $$;
+      `
+    })
+    
+    if (formulasAlterError) {
+      console.log('Formulas alter table error:', formulasAlterError)
+    } else {
+      console.log('✅ Formulas user_id column added')
+    }
+
     // Create patients table
     const { error: patientsError } = await supabase.rpc('exec_sql', {
       sql: `
         CREATE TABLE IF NOT EXISTS patients (
           id SERIAL PRIMARY KEY,
+          user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
           name TEXT NOT NULL,
           identifier TEXT,
           date_of_birth TEXT,
@@ -119,11 +158,30 @@ async function setupDatabase() {
       console.log('✅ Patients table created')
     }
 
+    // Add user_id column to patients if it doesn't exist
+    const { error: patientsAlterError } = await supabase.rpc('exec_sql', {
+      sql: `
+        DO $$ 
+        BEGIN 
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'patients' AND column_name = 'user_id') THEN
+            ALTER TABLE patients ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+          END IF;
+        END $$;
+      `
+    })
+    
+    if (patientsAlterError) {
+      console.log('Patients alter table error:', patientsAlterError)
+    } else {
+      console.log('✅ Patients user_id column added')
+    }
+
     // Create prescriptions table
     const { error: prescriptionsError } = await supabase.rpc('exec_sql', {
       sql: `
         CREATE TABLE IF NOT EXISTS prescriptions (
           id SERIAL PRIMARY KEY,
+          user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
           patient_id INTEGER NOT NULL REFERENCES patients(id),
           formula_id INTEGER REFERENCES formulas(id),
           custom_formula JSONB,
@@ -141,6 +199,24 @@ async function setupDatabase() {
       console.log('Prescriptions table error:', prescriptionsError)
     } else {
       console.log('✅ Prescriptions table created')
+    }
+
+    // Add user_id column to prescriptions if it doesn't exist
+    const { error: prescriptionsAlterError } = await supabase.rpc('exec_sql', {
+      sql: `
+        DO $$ 
+        BEGIN 
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'prescriptions' AND column_name = 'user_id') THEN
+            ALTER TABLE prescriptions ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
+          END IF;
+        END $$;
+      `
+    })
+    
+    if (prescriptionsAlterError) {
+      console.log('Prescriptions alter table error:', prescriptionsAlterError)
+    } else {
+      console.log('✅ Prescriptions user_id column added')
     }
 
     // Create users table
@@ -163,6 +239,75 @@ async function setupDatabase() {
       console.log('Users table error:', usersError)
     } else {
       console.log('✅ Users table created')
+    }
+
+    // Enable Row Level Security (RLS)
+    const { error: rlsError } = await supabase.rpc('exec_sql', {
+      sql: `
+        ALTER TABLE herbs ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE formulas ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE patients ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE prescriptions ENABLE ROW LEVEL SECURITY;
+      `
+    })
+    
+    if (rlsError) {
+      console.log('RLS enable error:', rlsError)
+    } else {
+      console.log('✅ RLS enabled on all tables')
+    }
+
+    // Create RLS policies
+    const { error: policiesError } = await supabase.rpc('exec_sql', {
+      sql: `
+        -- Drop existing policies if they exist
+        DROP POLICY IF EXISTS "Users can read their own herbs" ON herbs;
+        DROP POLICY IF EXISTS "Users can insert their own herbs" ON herbs;
+        DROP POLICY IF EXISTS "Users can update their own herbs" ON herbs;
+        DROP POLICY IF EXISTS "Users can delete their own herbs" ON herbs;
+        
+        DROP POLICY IF EXISTS "Users can read their own formulas" ON formulas;
+        DROP POLICY IF EXISTS "Users can insert their own formulas" ON formulas;
+        DROP POLICY IF EXISTS "Users can update their own formulas" ON formulas;
+        DROP POLICY IF EXISTS "Users can delete their own formulas" ON formulas;
+        
+        DROP POLICY IF EXISTS "Users can read their own patients" ON patients;
+        DROP POLICY IF EXISTS "Users can insert their own patients" ON patients;
+        DROP POLICY IF EXISTS "Users can update their own patients" ON patients;
+        DROP POLICY IF EXISTS "Users can delete their own patients" ON patients;
+        
+        DROP POLICY IF EXISTS "Users can read their own prescriptions" ON prescriptions;
+        DROP POLICY IF EXISTS "Users can insert their own prescriptions" ON prescriptions;
+        DROP POLICY IF EXISTS "Users can update their own prescriptions" ON prescriptions;
+        DROP POLICY IF EXISTS "Users can delete their own prescriptions" ON prescriptions;
+        
+        -- Create new policies
+        CREATE POLICY "Users can read their own herbs" ON herbs FOR SELECT USING (auth.uid() = user_id);
+        CREATE POLICY "Users can insert their own herbs" ON herbs FOR INSERT WITH CHECK (auth.uid() = user_id);
+        CREATE POLICY "Users can update their own herbs" ON herbs FOR UPDATE USING (auth.uid() = user_id);
+        CREATE POLICY "Users can delete their own herbs" ON herbs FOR DELETE USING (auth.uid() = user_id);
+        
+        CREATE POLICY "Users can read their own formulas" ON formulas FOR SELECT USING (auth.uid() = user_id);
+        CREATE POLICY "Users can insert their own formulas" ON formulas FOR INSERT WITH CHECK (auth.uid() = user_id);
+        CREATE POLICY "Users can update their own formulas" ON formulas FOR UPDATE USING (auth.uid() = user_id);
+        CREATE POLICY "Users can delete their own formulas" ON formulas FOR DELETE USING (auth.uid() = user_id);
+        
+        CREATE POLICY "Users can read their own patients" ON patients FOR SELECT USING (auth.uid() = user_id);
+        CREATE POLICY "Users can insert their own patients" ON patients FOR INSERT WITH CHECK (auth.uid() = user_id);
+        CREATE POLICY "Users can update their own patients" ON patients FOR UPDATE USING (auth.uid() = user_id);
+        CREATE POLICY "Users can delete their own patients" ON patients FOR DELETE USING (auth.uid() = user_id);
+        
+        CREATE POLICY "Users can read their own prescriptions" ON prescriptions FOR SELECT USING (auth.uid() = user_id);
+        CREATE POLICY "Users can insert their own prescriptions" ON prescriptions FOR INSERT WITH CHECK (auth.uid() = user_id);
+        CREATE POLICY "Users can update their own prescriptions" ON prescriptions FOR UPDATE USING (auth.uid() = user_id);
+        CREATE POLICY "Users can delete their own prescriptions" ON prescriptions FOR DELETE USING (auth.uid() = user_id);
+      `
+    })
+    
+    if (policiesError) {
+      console.log('Policies error:', policiesError)
+    } else {
+      console.log('✅ RLS policies created')
     }
 
     console.log('🎉 Database setup completed!')

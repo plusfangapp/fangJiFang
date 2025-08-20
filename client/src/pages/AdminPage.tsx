@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { UserPlus, Bell, LineChart, LayoutDashboard, Users, Settings, FileText, Database, Shield, PlusCircle, X } from "lucide-react";
+import DataImporter from "@/components/DataImporter";
 import * as RechartsPrimitive from "recharts";
 import {
   Dialog,
@@ -597,7 +598,9 @@ export default function AdminPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="database">
+          <TabsContent value="database" className="space-y-6">
+            <DataImporter />
+            
             <Card>
               <CardHeader>
                 <CardTitle>Gestión de Base de Datos</CardTitle>

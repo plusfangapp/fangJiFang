@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -100,95 +100,82 @@ export default function FormulaEdit() {
     }
   }, [formula, form]);
 
-  // Mutación para crear o actualizar la fórmula
+  // Mutation para guardar la fórmula
   const mutation = useMutation({
     mutationFn: async (data: FormulaFormValues) => {
-      // Filter out undefined values and only send fields that exist in the database
-      const cleanData = Object.fromEntries(
-        Object.entries(data).filter(([key, value]) => 
-          value !== undefined && 
-          value !== null && 
-          value !== "" &&
-          // Only include fields that exist in the database schema
-          [
-            'pinyin_name', 'chinese_name', 'english_name', 'category',
-            'actions', 'indications', 'clinical_manifestations',
-            'clinical_applications', 'contraindications', 'cautions',
-            'pharmacological_effects', 'research', 'herb_drug_interactions',
-            'references_list', 'composition'
-          ].includes(key)
-        )
-      );
-
-      console.log("Clean formula data to insert:", cleanData);
-      console.log("isNewFormula:", isNewFormula);
-      console.log("id:", id);
-
-      if (isNewFormula || !id || id === "new" || id === "undefined") {
-        // Para crear una nueva fórmula
-        console.log("Creating new formula");
+      if (isNewFormula || !id || id === "undefined") {
+        // Get current user
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+          throw new Error('User not authenticated');
+        }
         const { data: newFormula, error } = await supabase
           .from('formulas')
-          .insert(cleanData)
+          .insert({ ...data, user_id: user.id })
           .select()
           .single();
         
         if (error) throw error;
         return newFormula;
-      } else if (id && id !== "new" && id !== "undefined") {
-        // Para actualizar una fórmula existente
-        console.log("Updating existing formula with id:", id);
+      } else {
         const { data: updatedFormula, error } = await supabase
           .from('formulas')
-          .update(cleanData)
+          .update(data)
           .eq('id', id)
           .select()
           .single();
         
         if (error) throw error;
         return updatedFormula;
-      } else {
-        throw new Error("Invalid formula ID for update operation");
       }
     },
     onSuccess: (data) => {
       toast({
-        title: isNewFormula ? "Fórmula creada" : "Fórmula actualizada",
-        description: `La fórmula ${data.pinyin_name} ha sido ${isNewFormula ? "creada" : "actualizada"} correctamente.`,
+        title: "Éxito",
+        description: isNewFormula ? "Fórmula creada exitosamente" : "Fórmula actualizada exitosamente",
       });
-      // Invalidamos la caché para recargar los datos
       queryClient.invalidateQueries({ queryKey: ["/api/formulas"] });
-      // Redirigimos a la página de detalle después de un pequeño delay
-      setTimeout(() => {
-        navigate(`/formulas/${data.id}`);
-      }, 100);
+      navigate(isNewFormula ? "/formulas" : `/formulas/${id}`);
     },
-    onError: (error) => {
-      console.error("Formula mutation error:", error);
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: `Ha ocurrido un error al ${isNewFormula ? "crear" : "actualizar"} la fórmula: ${error.message}`,
+        description: `Error al ${isNewFormula ? 'crear' : 'actualizar'} la fórmula: ${error.message}`,
         variant: "destructive",
       });
     },
   });
 
-  // Maneja el envío del formulario
+  // Función para manejar el envío del formulario
   const onSubmit = (data: FormulaFormValues) => {
-    console.log("Formula form submitted with data:", data);
     mutation.mutate(data);
   };
 
-  if (isLoading && !isNewFormula) {
+  // Función para añadir una nueva hierba a la composición
+  const handleAddComposition = useCallback(() => {
+    appendComposition({ herb: "", chineseName: "", dosage: "", function: "" });
+  }, [appendComposition]);
+
+  // Función para añadir una nueva acción
+  const handleAddAction = useCallback(() => {
+    appendAction("" as any);
+  }, [appendAction]);
+
+  // Función para eliminar una hierba de la composición
+  const handleRemoveComposition = useCallback((index: number) => {
+    removeComposition(index);
+  }, [removeComposition]);
+
+  // Función para eliminar una acción
+  const handleRemoveAction = useCallback((index: number) => {
+    removeAction(index);
+  }, [removeAction]);
+
+  if (isLoading) {
     return (
       <Layout>
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-muted rounded-md w-72"></div>
-          <div className="h-12 bg-muted rounded-md"></div>
-          <div className="h-12 bg-muted rounded-md"></div>
-          <div className="h-12 bg-muted rounded-md"></div>
-          <div className="h-12 bg-muted rounded-md"></div>
-          <div className="h-20 bg-muted rounded-md"></div>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
         </div>
       </Layout>
     );
@@ -202,7 +189,7 @@ export default function FormulaEdit() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-2xl font-bold">
-            {isNewFormula ? "Nueva Fórmula" : `Editar Fórmula: ${formula?.pinyinName}`}
+            {isNewFormula ? "Nueva Fórmula" : `Editar Fórmula: ${formula?.pinyin_name}`}
           </h1>
         </div>
       </div>
@@ -264,6 +251,7 @@ export default function FormulaEdit() {
                       <Select
                         onValueChange={field.onChange}
                         value={field.value || ""}
+                        key={`category-select-${field.value}`}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -297,7 +285,7 @@ export default function FormulaEdit() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => appendComposition({ herb: "", chineseName: "", dosage: "", function: "" })}
+                  onClick={handleAddComposition}
                   className="flex items-center gap-1"
                 >
                   <Plus className="h-4 w-4" />
@@ -307,13 +295,13 @@ export default function FormulaEdit() {
 
               <div className="space-y-4">
                 {compositionFields.map((field, index) => (
-                  <div key={field.id} className="flex flex-col gap-3 p-4 border rounded-md relative">
+                  <div key={`composition-${field.id}-${index}`} className="flex flex-col gap-3 p-4 border rounded-md relative">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       className="absolute top-2 right-2 h-8 w-8"
-                      onClick={() => removeComposition(index)}
+                      onClick={() => handleRemoveComposition(index)}
                     >
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
@@ -389,7 +377,7 @@ export default function FormulaEdit() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => appendAction("" as any)}
+                  onClick={handleAddAction}
                   className="flex items-center gap-1"
                 >
                   <Plus className="h-4 w-4" />
@@ -399,7 +387,7 @@ export default function FormulaEdit() {
 
               <div className="space-y-3">
                 {actionFields.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-2">
+                  <div key={`action-${field.id}-${index}`} className="flex items-center gap-2">
                     <FormField
                       control={form.control}
                       name={`actions.${index}`}
@@ -417,7 +405,7 @@ export default function FormulaEdit() {
                       variant="ghost"
                       size="icon"
                       className="h-10 w-10"
-                      onClick={() => removeAction(index)}
+                      onClick={() => handleRemoveAction(index)}
                     >
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>

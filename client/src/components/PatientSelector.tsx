@@ -114,8 +114,8 @@ export default function PatientSelector({ onSelectPatient, updatePrescriptionNum
                     <div className="flex-1">
                       <p className="text-sm font-medium">{patient.name}</p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {patient.contactInfo ? `${patient.contactInfo}` : ''} 
-                        {patient.identifier ? (patient.contactInfo ? ' · ' : '') + patient.identifier : ''}
+                                              {patient.contact_info ? `${patient.contact_info}` : ''}
+                      {patient.identifier ? (patient.contact_info ? ' · ' : '') + patient.identifier : ''}
                       </p>
                     </div>
                   </CommandItem>

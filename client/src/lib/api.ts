@@ -24,9 +24,16 @@ type UpdateUser = Database['public']['Tables']['users']['Update']
 // Herbs API
 export const herbsApi = {
   async getAll() {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('herbs')
       .select('*')
+      .eq('user_id', user.id)
       .order('pinyin_name')
     
     if (error) throw error
@@ -34,10 +41,17 @@ export const herbsApi = {
   },
 
   async getById(id: number) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('herbs')
       .select('*')
       .eq('id', id)
+      .eq('user_id', user.id)
       .single()
     
     if (error) throw error
@@ -45,9 +59,15 @@ export const herbsApi = {
   },
 
   async create(herb: InsertHerb) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('herbs')
-      .insert(herb)
+      .insert({ ...herb, user_id: user.id })
       .select()
       .single()
     
@@ -56,10 +76,17 @@ export const herbsApi = {
   },
 
   async update(id: number, herb: UpdateHerb) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('herbs')
       .update(herb)
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single()
     
@@ -68,18 +95,32 @@ export const herbsApi = {
   },
 
   async delete(id: number) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { error } = await supabase
       .from('herbs')
       .delete()
       .eq('id', id)
+      .eq('user_id', user.id)
     
     if (error) throw error
   },
 
   async search(query: string) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('herbs')
       .select('*')
+      .eq('user_id', user.id)
       .or(`pinyin_name.ilike.%${query}%,chinese_name.ilike.%${query}%,english_name.ilike.%${query}%`)
       .order('pinyin_name')
     
@@ -91,9 +132,16 @@ export const herbsApi = {
 // Formulas API
 export const formulasApi = {
   async getAll() {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('formulas')
       .select('*')
+      .eq('user_id', user.id)
       .order('pinyin_name')
     
     if (error) throw error
@@ -101,10 +149,17 @@ export const formulasApi = {
   },
 
   async getById(id: number) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('formulas')
       .select('*')
       .eq('id', id)
+      .eq('user_id', user.id)
       .single()
     
     if (error) throw error
@@ -112,9 +167,15 @@ export const formulasApi = {
   },
 
   async create(formula: InsertFormula) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('formulas')
-      .insert(formula)
+      .insert({ ...formula, user_id: user.id })
       .select()
       .single()
     
@@ -123,10 +184,17 @@ export const formulasApi = {
   },
 
   async update(id: number, formula: UpdateFormula) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('formulas')
       .update(formula)
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single()
     
@@ -135,18 +203,32 @@ export const formulasApi = {
   },
 
   async delete(id: number) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { error } = await supabase
       .from('formulas')
       .delete()
       .eq('id', id)
+      .eq('user_id', user.id)
     
     if (error) throw error
   },
 
   async search(query: string) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('formulas')
       .select('*')
+      .eq('user_id', user.id)
       .or(`pinyin_name.ilike.%${query}%,chinese_name.ilike.%${query}%,english_name.ilike.%${query}%`)
       .order('pinyin_name')
     
@@ -158,9 +240,16 @@ export const formulasApi = {
 // Patients API
 export const patientsApi = {
   async getAll() {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('patients')
       .select('*')
+      .eq('user_id', user.id)
       .order('name')
     
     if (error) throw error
@@ -168,10 +257,17 @@ export const patientsApi = {
   },
 
   async getById(id: number) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('patients')
       .select('*')
       .eq('id', id)
+      .eq('user_id', user.id)
       .single()
     
     if (error) throw error
@@ -179,9 +275,15 @@ export const patientsApi = {
   },
 
   async create(patient: InsertPatient) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('patients')
-      .insert(patient)
+      .insert({ ...patient, user_id: user.id })
       .select()
       .single()
     
@@ -190,10 +292,17 @@ export const patientsApi = {
   },
 
   async update(id: number, patient: UpdatePatient) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('patients')
       .update(patient)
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single()
     
@@ -202,10 +311,17 @@ export const patientsApi = {
   },
 
   async delete(id: number) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { error } = await supabase
       .from('patients')
       .delete()
       .eq('id', id)
+      .eq('user_id', user.id)
     
     if (error) throw error
   }
@@ -214,6 +330,12 @@ export const patientsApi = {
 // Prescriptions API
 export const prescriptionsApi = {
   async getAll() {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('prescriptions')
       .select(`
@@ -221,6 +343,7 @@ export const prescriptionsApi = {
         patient:patients(name),
         formula:formulas(pinyin_name, chinese_name)
       `)
+      .eq('user_id', user.id)
       .order('date_created', { ascending: false })
     
     if (error) throw error
@@ -228,6 +351,12 @@ export const prescriptionsApi = {
   },
 
   async getById(id: number) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('prescriptions')
       .select(`
@@ -236,6 +365,7 @@ export const prescriptionsApi = {
         formula:formulas(*)
       `)
       .eq('id', id)
+      .eq('user_id', user.id)
       .single()
     
     if (error) throw error
@@ -243,9 +373,15 @@ export const prescriptionsApi = {
   },
 
   async create(prescription: InsertPrescription) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('prescriptions')
-      .insert(prescription)
+      .insert({ ...prescription, user_id: user.id })
       .select()
       .single()
     
@@ -254,10 +390,17 @@ export const prescriptionsApi = {
   },
 
   async update(id: number, prescription: UpdatePrescription) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('prescriptions')
       .update(prescription)
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single()
     
@@ -266,10 +409,17 @@ export const prescriptionsApi = {
   },
 
   async delete(id: number) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { error } = await supabase
       .from('prescriptions')
       .delete()
       .eq('id', id)
+      .eq('user_id', user.id)
     
     if (error) throw error
   }

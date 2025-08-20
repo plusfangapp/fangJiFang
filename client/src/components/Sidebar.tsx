@@ -11,12 +11,15 @@ import {
   ChevronRight,
   AlignJustify,
   UserCircle,
-  Plus
+  Plus,
+  LogOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 interface SidebarProps {
   onClose?: () => void;
@@ -25,11 +28,40 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onClose, expanded = true, onToggle }: SidebarProps) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { t } = useLanguage();
+  const { toast } = useToast();
 
   // Ya no cerramos el panel automáticamente al hacer clic en un enlace
   const handleClick = () => {};
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Clear any stored authentication data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión exitosamente",
+      });
+      
+      // Redirect to login page
+      setLocation('/login');
+    } catch (error) {
+      toast({
+        title: "Error al cerrar sesión",
+        description: "Hubo un problema al cerrar la sesión",
+        variant: "destructive",
+      });
+    }
+  };
 
   const isActive = (path: string) => {
     if (path === "/" && location === "/") return true;
@@ -211,7 +243,7 @@ export default function Sidebar({ onClose, expanded = true, onToggle }: SidebarP
         </div>
 
         {/* New Prescription button */}
-        <div className="mt-auto mb-8">
+        <div className="mt-auto mb-4">
           <TooltipProvider>
             <Link href="/prescriptions/new" onClick={handleClick}>
               <Tooltip>
@@ -232,6 +264,31 @@ export default function Sidebar({ onClose, expanded = true, onToggle }: SidebarP
                 {!expanded && <TooltipContent side="right">New Prescription</TooltipContent>}
               </Tooltip>
             </Link>
+          </TooltipProvider>
+        </div>
+
+        {/* Logout button */}
+        <div className="mb-8">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button onClick={handleLogout} className="w-full">
+                  <div className="flex items-center h-14">
+                    <div className={`flex ${expanded ? 'justify-start pl-8 w-20' : 'justify-center w-24'}`}>
+                      <div className="rounded-xl bg-red-100 hover:bg-red-200 flex items-center justify-center w-10 h-10 min-w-[40px] shadow-[0_4px_6px_rgba(0,0,0,0.1)] transition-colors">
+                        <LogOut className="h-5 w-5 text-red-600" />
+                      </div>
+                    </div>
+                    {expanded && (
+                      <span className={`text-sm font-medium text-red-600 ${expanded ? 'ml-6' : 'ml-3'}`}>
+                        Cerrar Sesión
+                      </span>
+                    )}
+                  </div>
+                </button>
+              </TooltipTrigger>
+              {!expanded && <TooltipContent side="right">Cerrar Sesión</TooltipContent>}
+            </Tooltip>
           </TooltipProvider>
         </div>
       </nav>

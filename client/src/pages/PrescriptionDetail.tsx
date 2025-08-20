@@ -141,8 +141,8 @@ export default function PrescriptionDetail() {
     notes: prescription?.notes || "",
     patientName: prescription?.patient?.name || "",
     patientEmail: prescription?.patient?.identifier || "",
-    patientPhone: prescription?.patient?.contactInfo || "",
-    patientAddress: prescription?.patient?.medicalHistory || "",
+          patientPhone: prescription?.patient?.contact_info || "",
+    patientAddress: prescription?.patient?.medical_history || "",
     medicalConditions: initialMedicalConditions,
     items: []
   };

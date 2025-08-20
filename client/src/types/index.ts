@@ -3,6 +3,7 @@ import { z } from 'zod'
 // Herb types
 export interface Herb {
   id: number
+  user_id?: string
   pinyin_name: string
   chinese_name: string
   latin_name?: string
@@ -47,6 +48,7 @@ export interface Herb {
 // Formula types
 export interface Formula {
   id: number
+  user_id?: string
   pinyin_name: string
   chinese_name: string
   english_name?: string
@@ -69,6 +71,7 @@ export interface Formula {
 // Patient types
 export interface Patient {
   id: number
+  user_id?: string
   name: string
   identifier?: string
   date_of_birth?: string
@@ -83,6 +86,7 @@ export interface Patient {
 // Prescription types
 export interface Prescription {
   id: number
+  user_id?: string
   patient_id: number
   formula_id?: number
   custom_formula?: any
