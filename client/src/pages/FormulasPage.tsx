@@ -547,21 +547,21 @@ export default function FormulasPage() {
               {/* Clinical Information */}
               <div className="space-y-6">
                 {/* Clinical Manifestations */}
-                {previewFormula.clinicalManifestations && (
+                {previewFormula.clinical_manifestations && (
                   <div className="space-y-2">
                     <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Clinical Manifestations</h3>
                     <p className="text-sm text-gray-700 whitespace-pre-line">
-                      {previewFormula.clinicalManifestations}
+                      {previewFormula.clinical_manifestations}
                     </p>
                   </div>
                 )}
 
                 {/* Clinical Applications */}
-                {previewFormula.clinicalApplications && (
+                {previewFormula.clinical_applications && (
                   <div className="space-y-2">
                     <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Clinical Applications</h3>
                     <div className="flex flex-wrap gap-2">
-                      {previewFormula.clinicalApplications.split(',').map((app, i) => (
+                      {previewFormula.clinical_applications.split(',').map((app: string, i: number) => (
                         <div key={i} className="bg-teal-100 text-teal-800 border border-teal-200 px-2.5 py-0.5 rounded-full text-xs font-medium">
                           {app.trim()}
                         </div>
@@ -571,11 +571,11 @@ export default function FormulasPage() {
                 )}
 
                 {/* Pharmacological Effects */}
-                {previewFormula.pharmacologicalEffects && (
+                {previewFormula.pharmacological_effects && (
                   <div className="space-y-2">
                     <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Pharmacological Effects</h3>
                     <div className="flex flex-wrap gap-2">
-                      {previewFormula.pharmacologicalEffects.split(',').map((effect, i) => (
+                      {previewFormula.pharmacological_effects.split(',').map((effect: string, i: number) => (
                         <div key={i} className="bg-purple-100 text-purple-800 border border-purple-200 px-2.5 py-0.5 rounded-full text-xs font-medium">
                           {effect.trim()}
                         </div>

@@ -1,0 +1,125 @@
+[
+  {
+    "id": 901,
+    "pinyin_name": "Gui Zhi Tang",
+    "chinese_name": "桂枝湯",
+    "english_name": "Cinnamon Combination",
+    "category": "Exterior-Releasing Formulas",
+    "actions": [
+      "Releases the exterior and muscle layer",
+      "Regulates and harmonizes ying qi and wei qi"
+    ],
+    "indications": "",
+    "contraindications": "",
+    "composition": [
+      {
+        "herb": "Gui Zhi",
+        "dosage": "22.2%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Bai Shao",
+        "dosage": "22.2%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Sheng Jiang",
+        "dosage": "22.2%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Da Zao",
+        "dosage": "18.5%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Zhi Gan Cao",
+        "dosage": "14.8%",
+        "function": "",
+        "chineseName": ""
+      }
+    ],
+    "clinical_manifestations": "Exterior-deficient, wind-cold syndrome: headache, fever, perspiration, aversion to wind, stiff neck, nasal congestion, dry heaves, no particular thirst. Disharmony of the ying and wei levels: feverish sensations, spontaneous sweating, aversion to wind, thin white tongue coating, floating moderate pulse.",
+    "clinical_applications": "Fever, common cold, influenza, bronchial asthma, allergic rhinitis, cervical spondylosis, and trigeminal neuralgia.",
+    "cautions": "",
+    "pharmacological_effects": "Effect on sweating regulation, anti-inflammatory, analgesic, sedative, antipyretic, cough suppressing, anti-asthmatic.",
+    "research": "Fever, common cold, bronchial asthma, allergic rhinitis, cervical spondylosis, trigeminal neuralgia.",
+    "herb_drug_interactions": "Gonadotropin-releasing hormone agonist-induced menopause",
+    "reference_list": []
+  },
+  {
+    "id": 902,
+    "pinyin_name": "Ge Gen Tang",
+    "chinese_name": "葛根湯",
+    "english_name": "Pueraria Combination",
+    "category": "Exterior-Releasing Formulas",
+    "actions": [
+      "Releases the exterior and muscle layer",
+      "Promotes generation of body fluids"
+    ],
+    "indications": "",
+    "contraindications": "Refer to Ma Huang",
+    "composition": [
+      {
+        "herb": "Ge Gen",
+        "dosage": "21%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Qiang Huo",
+        "dosage": "10%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Sheng Jiang",
+        "dosage": "14%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Gui Zhi",
+        "dosage": "15%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Bai Shao",
+        "dosage": "11%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Zhi Gan Cao",
+        "dosage": "11%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Da Zao (Hong)",
+        "dosage": "14%",
+        "function": "",
+        "chineseName": ""
+      },
+      {
+        "herb": "Yi Yi Ren",
+        "dosage": "4%",
+        "function": "",
+        "chineseName": ""
+      }
+    ],
+    "clinical_manifestations": "Taiyang syndrome with wind-cold invasion: severe muscle stiffness of the neck and back, aversion to cold, with or without fever, aversion to wind, absence of perspiration and diarrhea.",
+    "clinical_applications": "Fever, common cold, influenza, respiratory tract infections, allergic rhinitis, bronchial asthma, atrioventricular block, testicular pain, hernia, appendicitis, sciatica, allergic purpura, itching, frostbite, eczema, urticaria, enuresis, hyperactivity disorder",
+    "cautions": "Refer to Ma Huang",
+    "pharmacological_effects": "antibacterial, antiviral, antipyretic, anti-inflammatory, cardiovascular, chronotropic and inotropic, immunostimulant, hepatoprotective",
+    "research": "Fever, upper respiratory tract infection, meningitis, neck and shoulder pain, periarthritis of shoulder, soft tissue injuries, facial paralysis, Bell's palsy, tension headache, scleroderma, painful gynecomastia in liver cirrhosis, cataract surgery",
+    "herb_drug_interactions": "Acetaminophen",
+    "reference_list": []
+  }
+]
+

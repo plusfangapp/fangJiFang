@@ -34,12 +34,12 @@ const FormulaPreview: React.FC<FormulaPreviewProps> = ({
           <DialogTitle className="flex flex-col sm:flex-row sm:items-center gap-2 pr-8">
             <div className="flex flex-col sm:flex-row sm:items-center flex-grow">
               <div className="flex items-center flex-wrap">
-                <span className="text-xl font-bold mr-2">{formula.pinyinName}</span>
+                <span className="text-xl font-bold mr-2">{formula.pinyin_name}</span>
                 {/* Chinese name hidden as requested */}
               </div>
-              {formula.englishName && (
+              {formula.english_name && (
                 <span className="text-sm italic text-gray-500 font-medium sm:ml-2 mt-1 sm:mt-0">
-                  ({formula.englishName})
+                  ({formula.english_name})
                 </span>
               )}
               {formula.category && (
@@ -76,8 +76,8 @@ const FormulaPreview: React.FC<FormulaPreviewProps> = ({
           <div className="mb-6">
             <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Clinical Manifestations</h3>
             <div className="p-3">
-              {formula.clinicalManifestations ? (
-                <p className="text-sm">{formula.clinicalManifestations}</p>
+              {formula.clinical_manifestations ? (
+                <p className="text-sm">{formula.clinical_manifestations}</p>
               ) : formula.indications ? (
                 <p className="text-sm">{formula.indications}</p>
               ) : (
@@ -91,7 +91,7 @@ const FormulaPreview: React.FC<FormulaPreviewProps> = ({
             <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Clinical Applications</h3>
             <div className="flex flex-wrap gap-2 p-3">
               <ChipDisplay
-                data={formula.clinicalApplications}
+                data={formula.clinical_applications}
                 bgColor="bg-teal-100"
                 textColor="text-teal-800"
                 borderColor="border-teal-200"
@@ -133,7 +133,7 @@ const FormulaPreview: React.FC<FormulaPreviewProps> = ({
             <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Pharmacological Effects</h3>
             <div className="flex flex-wrap gap-2 p-3">
               <ChipDisplay
-                data={formula.pharmacologicalEffects}
+                data={formula.pharmacological_effects}
                 bgColor="bg-purple-100"
                 textColor="text-purple-800"
                 borderColor="border-purple-200"
@@ -167,10 +167,10 @@ const FormulaPreview: React.FC<FormulaPreviewProps> = ({
           <div className="mb-6">
             <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Herb-Drug Interactions</h3>
             <div className="p-3">
-              {formula.herbDrugInteractions && (
-                <p className="text-sm whitespace-pre-wrap">{formula.herbDrugInteractions}</p>
+              {formula.herb_drug_interactions && (
+                <p className="text-sm whitespace-pre-wrap">{formula.herb_drug_interactions}</p>
               )}
-              {!formula.herbDrugInteractions && (
+              {!formula.herb_drug_interactions && (
                 <p className="text-sm text-gray-500 italic">No herb-drug interactions information available</p>
               )}
             </div>
@@ -180,18 +180,18 @@ const FormulaPreview: React.FC<FormulaPreviewProps> = ({
           <div className="mb-6">
             <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">References</h3>
             <div className="p-3">
-              {formula.references && formula.references.length > 0 && (
+              {formula.reference_list && formula.reference_list.length > 0 && (
                 <ul className="list-disc pl-5 space-y-2">
-                  {Array.isArray(formula.references) ? (
-                    formula.references.map((reference, index) => (
+                  {Array.isArray(formula.reference_list) ? (
+                    formula.reference_list.map((reference: any, index: number) => (
                       <li key={index} className="text-sm italic text-gray-600">{reference}</li>
                     ))
                   ) : (
-                    <li className="text-sm italic text-gray-600">{formula.references}</li>
+                    <li className="text-sm italic text-gray-600">{formula.reference_list}</li>
                   )}
                 </ul>
               )}
-              {(!formula.references || formula.references.length === 0) && (
+              {(!formula.reference_list || formula.reference_list.length === 0) && (
                 <p className="text-sm text-gray-500 italic">No references information available</p>
               )}
             </div>

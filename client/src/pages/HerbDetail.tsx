@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { ArrowLeft, Edit } from "lucide-react";
+import { ArrowLeft, Edit, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Layout from "@/components/Layout";
 import { Herb } from "@/types";
 
@@ -67,7 +68,7 @@ export default function HerbDetail() {
   }
 
   // Get nature color for visual indicator
-  const getNatureColor = (nature: string | null) => {
+  const getNatureColor = (nature: string | null | undefined) => {
     const natureLower = nature?.toLowerCase() || "";
     if (natureLower.includes("hot")) {
       return "bg-red-600";
@@ -94,7 +95,7 @@ export default function HerbDetail() {
             className={`h-4 w-4 rounded-full ${getNatureColor(herb.nature)}`} 
             title={`Nature: ${herb.nature || "Not specified"}`}
           ></div>
-          <h1 className="text-2xl font-bold">{herb.pinyinName}</h1>
+          <h1 className="text-2xl font-bold">{herb.pinyin_name}</h1>
         </div>
 
         <Card className="overflow-hidden">
@@ -105,16 +106,16 @@ export default function HerbDetail() {
                   <h2 className="text-lg font-semibold mb-3">General Information</h2>
                   <div className="space-y-3">
                     {/* Chinese name hidden as requested */}
-                    {herb.latinName && (
+                    {herb.latin_name && (
                       <div className="grid grid-cols-3 gap-2">
                         <div className="font-medium">Latin Name:</div>
-                        <div className="col-span-2">{herb.latinName}</div>
+                        <div className="col-span-2">{herb.latin_name}</div>
                       </div>
                     )}
-                    {herb.englishName && (
+                    {herb.english_name && (
                       <div className="grid grid-cols-3 gap-2">
                         <div className="font-medium">English Name:</div>
-                        <div className="col-span-2">{herb.englishName}</div>
+                        <div className="col-span-2">{herb.english_name}</div>
                       </div>
                     )}
                     {herb.category && (
@@ -161,6 +162,99 @@ export default function HerbDetail() {
                     <p>{herb.applications}</p>
                   </div>
                 )}
+
+                {/* TCM Actions */}
+                {herb.tcm_actions && (
+                  <div>
+                    <h2 className="text-lg font-semibold mb-3">TCM Actions</h2>
+                    {(() => {
+                      let parsedActions: any[] = [];
+                      
+                      if (typeof herb.tcm_actions === 'string') {
+                        try {
+                          parsedActions = JSON.parse(herb.tcm_actions);
+                        } catch (e) {
+                          console.error("Error parsing TCM Actions:", e);
+                        }
+                      } else if (Array.isArray(herb.tcm_actions)) {
+                        parsedActions = herb.tcm_actions;
+                      }
+
+                      if (parsedActions.length > 0) {
+                        return (
+                          <Accordion type="multiple" className="space-y-2">
+                            {parsedActions.map((action: any, index: number) => (
+                              <AccordionItem 
+                                key={index} 
+                                value={`action-${index}`}
+                                className="border border-gray-200 rounded-md"
+                              >
+                                <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                                  <div className="flex items-center gap-2">
+                                    <Circle className="h-3 w-3 text-primary" />
+                                    <span className="font-medium">{action.function}</span>
+                                  </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="px-3 pb-3">
+                                  {action.clinicalUses && action.clinicalUses.length > 0 && (
+                                    <div className="space-y-3">
+                                      {action.clinicalUses.map((pattern: any, patternIdx: number) => (
+                                        <div key={patternIdx} className="border-l-2 border-primary/30 pl-3">
+                                          {pattern.pattern && (
+                                            <div className="font-medium text-sm text-gray-700 mb-2">
+                                              {pattern.pattern}
+                                            </div>
+                                          )}
+                                          {pattern.cases && pattern.cases.length > 0 && (
+                                            <div className="space-y-2">
+                                              {pattern.cases.map((caseItem: any, caseIdx: number) => (
+                                                <div key={caseIdx} className="text-sm">
+                                                  {caseItem.description && (
+                                                    <div className="font-medium text-gray-600 mb-1">
+                                                      {caseItem.description}
+                                                    </div>
+                                                  )}
+                                                  {caseItem.combinations && caseItem.combinations.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1">
+                                                      {caseItem.combinations.map((combo: any, comboIdx: number) => (
+                                                        <div key={comboIdx} className="text-xs">
+                                                          {combo.herbs && combo.herbs.length > 0 && (
+                                                            <div className="flex flex-wrap gap-1 mb-1">
+                                                              {combo.herbs.map((herb: any, herbIdx: number) => (
+                                                                <Badge key={herbIdx} variant="outline" className="text-xs">
+                                                                  {herb}
+                                                                </Badge>
+                                                              ))}
+                                                            </div>
+                                                          )}
+                                                          {combo.formula && (
+                                                            <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700">
+                                                              {combo.formula}
+                                                            </Badge>
+                                                          )}
+                                                        </div>
+                                                      ))}
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </AccordionContent>
+                              </AccordionItem>
+                            ))}
+                          </Accordion>
+                        );
+                      } else {
+                        return <p className="text-gray-500">No TCM actions information available</p>;
+                      }
+                    })()}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -185,11 +279,11 @@ export default function HerbDetail() {
                   </div>
                 )}
 
-                {herb.secondaryActions && typeof herb.secondaryActions === 'object' && (
+                {herb.secondary_actions && typeof herb.secondary_actions === 'object' && (
                   <div>
                     <h2 className="text-lg font-semibold mb-3">Secondary Actions</h2>
                     <div className="space-y-2">
-                      {Object.entries(herb.secondaryActions as Record<string, any>).map(([key, value], idx) => (
+                      {Object.entries(herb.secondary_actions as Record<string, any>).map(([key, value], idx) => (
                         <div key={idx} className="border-l-2 border-primary pl-3 py-1">
                           <div className="font-medium">{key}</div>
                           {typeof value === 'string' ? (
@@ -205,11 +299,11 @@ export default function HerbDetail() {
                   </div>
                 )}
 
-                {herb.commonCombinations && typeof herb.commonCombinations === 'object' && (
+                {herb.common_combinations && typeof herb.common_combinations === 'object' && (
                   <div>
                     <h2 className="text-lg font-semibold mb-3">Common Combinations</h2>
                     <div className="flex flex-wrap gap-2">
-                      {Object.entries(herb.commonCombinations as Record<string, any>).map(([key, value], idx) => (
+                      {Object.entries(herb.common_combinations as Record<string, any>).map(([key, value], idx) => (
                         <Badge key={idx} variant="outline" className="text-xs">
                           {key}: {typeof value === 'string' ? value : JSON.stringify(value)}
                         </Badge>

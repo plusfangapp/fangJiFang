@@ -31,7 +31,8 @@ export interface Herb {
   biological_effects?: any
   clinical_evidence?: any
   herb_drug_interactions?: any
-  references?: string[]
+  reference_list?: string[] // Changed from references to reference_list
+  references_list?: string[] // Keep for backward compatibility
   properties?: string
   notes?: string
   functions?: string[]
@@ -41,6 +42,16 @@ export interface Herb {
   pharmacological_effects?: string[]
   laboratory_effects?: string[]
   clinical_studies_and_research?: string[]
+  // Add missing fields that are used in prescription code
+  pinyinName?: string // For backward compatibility
+  chineseName?: string // For backward compatibility
+  englishName?: string // For backward compatibility
+  latinName?: string // For backward compatibility
+  function?: string
+  actions?: string[]
+  organAffinity?: string
+  preparationMethods?: any
+  tcmActions?: any
   created_at?: string
   updated_at?: string
 }
@@ -55,15 +66,15 @@ export interface Formula {
   category?: string
   actions?: string[]
   indications?: string
+  contraindications?: string
+  composition?: any
   clinical_manifestations?: string
   clinical_applications?: string
-  contraindications?: string
   cautions?: string
   pharmacological_effects?: string
   research?: string
   herb_drug_interactions?: string
-  references?: string[]
-  composition?: any
+  reference_list?: string[]
   created_at?: string
   updated_at?: string
 }
@@ -92,12 +103,26 @@ export interface Prescription {
   custom_formula?: any
   name?: string
   date_created?: string
+  dateCreated?: string
   notes?: string
   status?: string
+  diagnosis?: string
+  instructions?: string
+  duration?: string
+  items?: PrescriptionItem[]
   created_at?: string
   updated_at?: string
   patient?: { id: number; name: string }
   formula?: { id: number; pinyin_name: string; chinese_name: string }
+}
+
+// Prescription Item types
+export interface PrescriptionItem {
+  type: 'herb' | 'formula'
+  id: number
+  quantity: number
+  herb?: Herb
+  formula?: Formula
 }
 
 // User types
@@ -185,15 +210,15 @@ export const insertFormulaSchema = z.object({
   category: z.string().optional(),
   actions: z.array(z.string()).optional(),
   indications: z.string().optional(),
+  contraindications: z.string().optional(),
+  composition: z.any().optional(),
   clinical_manifestations: z.string().optional(),
   clinical_applications: z.string().optional(),
-  contraindications: z.string().optional(),
   cautions: z.string().optional(),
   pharmacological_effects: z.string().optional(),
   research: z.string().optional(),
   herb_drug_interactions: z.string().optional(),
-  references: z.array(z.string()).optional(),
-  composition: z.any().default([]),
+  reference_list: z.array(z.string()).optional(),
 })
 
 export const insertPatientSchema = z.object({
@@ -213,6 +238,14 @@ export const insertPrescriptionSchema = z.object({
   name: z.string().optional(),
   notes: z.string().optional(),
   status: z.string().optional(),
+  diagnosis: z.string().optional(),
+  instructions: z.string().optional(),
+  duration: z.string().optional(),
+  items: z.array(z.object({
+    type: z.enum(['herb', 'formula']),
+    id: z.number(),
+    quantity: z.number()
+  })).optional(),
 })
 
 export const insertUserSchema = z.object({

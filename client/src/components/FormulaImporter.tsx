@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -14,6 +13,7 @@ import {
 import { Upload, AlertCircle, Check, FileJson } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { formulasApi } from "@/lib/api";
 
 interface FormulaImporterProps {
   isOpen: boolean;
@@ -63,40 +63,33 @@ const FormulaImporter: React.FC<FormulaImporterProps> = ({ isOpen, onClose, onSu
     setUploadProgress(0);
 
     try {
-      // Crear FormData para enviar el archivo
-      const formData = new FormData();
-      formData.append("file", file);
-
       setUploadProgress(30);
 
-      // Realizar la petición con fetch en lugar de apiRequest para poder enviar FormData
-      const response = await fetch("/api/formulas/import", {
-        method: "POST",
-        body: formData
-      });
+      // Read the file content
+      const fileContent = await file.text();
+      const formulasData = JSON.parse(fileContent);
 
-      setUploadProgress(70);
+      setUploadProgress(50);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Server Error: ${errorText}`);
-      }
+      // Ensure formulasData is an array
+      const formulasArray = Array.isArray(formulasData) ? formulasData : [formulasData];
 
-      const result = await response.json();
-
-      setUploadStatus({
-        successCount: result.imported || 0,
-        errorCount: result.skipped || 0,
-        errors: result.errors || [],
-      });
+      // Use the formulasApi.import method
+      const importedFormulas = await formulasApi.import(formulasArray);
 
       setUploadProgress(90);
 
-      if (result.imported > 0) {
+      setUploadStatus({
+        successCount: importedFormulas.length,
+        errorCount: 0,
+        errors: [],
+      });
+
+      if (importedFormulas.length > 0) {
         queryClient.invalidateQueries({ queryKey: ["/api/formulas"] });
         toast({
           title: "Import Successful",
-          description: `Successfully imported ${result.imported} formulas.`,
+          description: `Successfully imported ${importedFormulas.length} formulas.`,
         });
         if (onSuccess) {
           onSuccess();
@@ -104,7 +97,7 @@ const FormulaImporter: React.FC<FormulaImporterProps> = ({ isOpen, onClose, onSu
       } else {
         toast({
           title: "Import Failed",
-          description: "No formulas were imported. Check the error details.",
+          description: "No formulas were imported. Check the JSON format.",
           variant: "destructive",
         });
       }

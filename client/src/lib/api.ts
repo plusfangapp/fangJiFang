@@ -14,7 +14,13 @@ type InsertPatient = Database['public']['Tables']['patients']['Insert']
 type UpdatePatient = Database['public']['Tables']['patients']['Update']
 
 type Prescription = Database['public']['Tables']['prescriptions']['Row']
-type InsertPrescription = Database['public']['Tables']['prescriptions']['Insert']
+type InsertPrescription = Database['public']['Tables']['prescriptions']['Insert'] & {
+  dateCreated?: string;
+  items?: any[];
+  diagnosis?: string;
+  instructions?: string;
+  duration?: string;
+}
 type UpdatePrescription = Database['public']['Tables']['prescriptions']['Update']
 
 type User = Database['public']['Tables']['users']['Row']
@@ -126,6 +132,62 @@ export const herbsApi = {
     
     if (error) throw error
     return data
+  },
+
+  async import(herbsData: any[]) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Transform and clean the data before insertion
+    const transformedHerbs = herbsData.map(herb => {
+      const transformed = {
+        ...herb,
+        user_id: user.id
+      };
+
+      // Handle field transformations
+      if (transformed.references && !transformed.reference_list) {
+        transformed.reference_list = transformed.references;
+        delete transformed.references; // Remove the old field name
+      }
+
+      // Ensure JSONB fields are properly formatted
+      if (typeof transformed.contraindications === 'string') {
+        try {
+          transformed.contraindications = JSON.parse(transformed.contraindications);
+        } catch (e) {
+          // Keep as string if it's not valid JSON
+        }
+      }
+
+      if (typeof transformed.cautions === 'string') {
+        try {
+          transformed.cautions = JSON.parse(transformed.cautions);
+        } catch (e) {
+          // Keep as string if it's not valid JSON
+        }
+      }
+
+      // Remove any undefined or null values that might cause issues
+      Object.keys(transformed).forEach(key => {
+        if (transformed[key] === undefined) {
+          delete transformed[key];
+        }
+      });
+
+      return transformed;
+    });
+
+    const { data, error } = await supabase
+      .from('herbs')
+      .insert(transformedHerbs)
+      .select()
+    
+    if (error) throw error
+    return data
   }
 }
 
@@ -231,6 +293,69 @@ export const formulasApi = {
       .eq('user_id', user.id)
       .or(`pinyin_name.ilike.%${query}%,chinese_name.ilike.%${query}%,english_name.ilike.%${query}%`)
       .order('pinyin_name')
+    
+    if (error) throw error
+    return data
+  },
+
+  async getFormulaWithComposition(id: number) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('formulas')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single()
+    
+    if (error) throw error
+
+    // Parse composition if it's a string
+    if (data.composition && typeof data.composition === 'string') {
+      try {
+        data.composition = JSON.parse(data.composition);
+      } catch (e) {
+        console.error('Error parsing formula composition:', e);
+      }
+    }
+
+    return data
+  },
+
+  async import(formulasData: any[]) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Transform the data to handle field mappings
+    const transformedFormulas = formulasData.map(formula => {
+      const transformed = { ...formula };
+      
+      // Handle field transformations
+      if (transformed.references && !transformed.reference_list) {
+        transformed.reference_list = transformed.references;
+        delete transformed.references; // Remove the old field name
+      }
+      
+      return transformed;
+    });
+
+    // Add user_id to all formulas
+    const formulasWithUserId = transformedFormulas.map(formula => ({
+      ...formula,
+      user_id: user.id
+    }));
+
+    const { data, error } = await supabase
+      .from('formulas')
+      .insert(formulasWithUserId)
+      .select()
     
     if (error) throw error
     return data
@@ -379,10 +504,27 @@ export const prescriptionsApi = {
       throw new Error('User not authenticated');
     }
 
+    // Transform the prescription data to match database schema
+    const transformedPrescription = {
+      ...prescription,
+      user_id: user.id,
+      // Map dateCreated to date_created if provided
+      date_created: prescription.dateCreated || prescription.date_created || new Date().toISOString(),
+      // Ensure status has a default value
+      status: prescription.status || 'active'
+    };
+
+    // Remove items from the prescription data as it's stored in custom_formula
+    const { items, ...prescriptionData } = transformedPrescription;
+
     const { data, error } = await supabase
       .from('prescriptions')
-      .insert({ ...prescription, user_id: user.id })
-      .select()
+      .insert(prescriptionData)
+      .select(`
+        *,
+        patient:patients(name),
+        formula:formulas(pinyin_name, chinese_name)
+      `)
       .single()
     
     if (error) throw error

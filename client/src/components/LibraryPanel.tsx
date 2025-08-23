@@ -619,13 +619,9 @@ export default function LibraryPanel({
               <ScrollArea className="h-[200px]">
                 <div className="flex flex-col gap-2 pr-4">
                   {Array.from(new Set(filteredFormulas.flatMap(formula => {
-                    const clinicalApps = formula.clinicalApplications 
-                      ? formula.clinicalApplications.split(',').map(app => app.trim())
-                      : formula.clinicalManifestations 
-                        ? formula.clinicalManifestations.flatMap(manifestation => 
-                            manifestation.split(',').map(item => item.trim())
-                          )
-                        : [];
+                    const clinicalApps = formula.clinical_applications
+                      ? formula.clinical_applications.split(',').map(app => app.trim())
+                      : [];
                     return clinicalApps.filter(app => app && app !== '');
                   }))).sort().map(application => (
                                   <div key={application} className="flex items-center space-x-2">
@@ -657,8 +653,8 @@ export default function LibraryPanel({
               <ScrollArea className="h-[200px]">
                 <div className="flex flex-col gap-2 pr-4">
                   {Array.from(new Set(processedFormulas.flatMap(formula => 
-                    formula.pharmacologicalEffects 
-                      ? formula.pharmacologicalEffects.split(',').map(effect => effect.trim())
+                    formula.pharmacological_effects 
+                      ? formula.pharmacological_effects.split(',').map(effect => effect.trim())
                       : []
                   ).filter(effect => effect && effect !== ''))).sort().map(effect => (
                     <div key={effect} className="flex items-center space-x-2">

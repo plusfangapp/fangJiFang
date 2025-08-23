@@ -261,7 +261,7 @@ export default function FormulaDetail() {
               <h2 className="text-lg font-semibold mb-3">Efectos Farmacológicos</h2>
               <div className="flex flex-wrap gap-2">
                 <ChipDisplay
-                  data={formula.pharmacologicalEffects}
+                  data={formula.pharmacological_effects}
                   bgColor="bg-blue-100"
                   textColor="text-blue-800"
                   borderColor="border-blue-200"

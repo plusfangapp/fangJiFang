@@ -43,32 +43,33 @@ interface TcmAction {
 // Define la interfaz para Herb
 interface Herb {
   id: number;
-  pinyinName: string;
-  chineseName: string;
-  englishName?: string;
-  latinName?: string;
+  pinyin_name: string;
+  chinese_name: string;
+  english_name?: string;
+  latin_name?: string;
   category?: string;
   nature?: string;
   flavor?: string;
   toxicity?: string;
   dosage?: string;
   meridians?: string[];
-  tcmActions?: TcmAction[];
+  tcm_actions?: TcmAction[];
   functions?: string[];
   applications?: string;
-  commonCombinations?: any[];
+  common_combinations?: any[];
   contraindications?: string;
   cautions?: string;
   properties?: string;
-  pharmacologicalEffects?: string[];
-  laboratoryEffects?: string[];
-  herbDrugInteractions?: string[];
-  clinicalStudiesAndResearch?: string[];
-  biologicalEffects?: string[];
+  pharmacological_effects?: string[];
+  laboratory_effects?: string[];
+  herb_drug_interactions?: string[];
+  clinical_studies_and_research?: string[];
+  biological_effects?: string[];
   notes?: string;
-  standardIndications?: string;
-  pregnancyConsiderations?: string;
-  references?: string[];
+  standard_indications?: string;
+  pregnancy_considerations?: string;
+  reference_list?: string[];
+  references_list?: string[];
 }
 
 interface HerbPreviewProps {
@@ -154,23 +155,30 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
   console.log("Herb object:", herb);
 
   // Depurar referencias
-  console.log("Referencias:", herb.references);
-  if (herb.references) {
-    console.log("Tipo de referencias:", typeof herb.references, Array.isArray(herb.references));
+  console.log("Referencias:", herb.reference_list || herb.references_list);
+  if (herb.reference_list || herb.references_list) {
+    console.log("Tipo de referencias:", typeof (herb.reference_list || herb.references_list), Array.isArray(herb.reference_list || herb.references_list));
   } else {
     console.log("No hay referencias o es undefined");
   }
 
-  // Verifica si tcmActions está definido y convertirlo a estructura si viene como string
-  if (herb.tcmActions && typeof herb.tcmActions === 'string') {
+  // Handle both camelCase and snake_case field names for TCM Actions
+  const tcmActions = herb.tcm_actions || herb.tcmActions;
+  console.log("TCM Actions field:", tcmActions);
+  console.log("TCM Actions type:", typeof tcmActions);
+
+  // Parse TCM Actions if it's a string
+  let parsedTcmActions: any[] = [];
+  if (tcmActions && typeof tcmActions === 'string') {
     try {
-      herb.tcmActions = JSON.parse(herb.tcmActions);
-      console.log("TCM Actions (parsed from string):", herb.tcmActions);
+      parsedTcmActions = JSON.parse(tcmActions);
+      console.log("TCM Actions (parsed from string):", parsedTcmActions);
     } catch (e) {
       console.error("Error parsing tcmActions string:", e);
     }
-  } else {
-    console.log("TCM Actions (original):", herb.tcmActions);
+  } else if (Array.isArray(tcmActions)) {
+    parsedTcmActions = tcmActions;
+    console.log("TCM Actions (original):", tcmActions);
   }
 
   const toggleFunction = (functionName: string) => {
@@ -188,12 +196,12 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
           <DialogTitle className="flex flex-col sm:flex-row sm:items-center gap-2">
             <div className="flex flex-col sm:flex-row sm:items-center flex-grow">
               <div className="flex items-center flex-wrap">
-                <span className="text-xl font-bold mr-2">{herb.pinyinName}</span>
+                <span className="text-xl font-bold mr-2">{herb.pinyin_name}</span>
                 {/* Chinese name hidden as requested */}
               </div>
-              {herb.latinName && (
+              {herb.latin_name && (
                 <span className="text-sm italic text-gray-500 font-medium sm:ml-2 mt-1 sm:mt-0">
-                  ({herb.latinName})
+                  ({herb.latin_name})
                 </span>
               )}
               {herb.category && (
@@ -202,7 +210,7 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
             </div>
           </DialogTitle>
           <DialogDescription className="space-y-1">
-            {herb.englishName && <div className="text-sm text-gray-600 italic">{herb.englishName}</div>}
+            {herb.english_name && <div className="text-sm text-gray-600 italic">{herb.english_name}</div>}
           </DialogDescription>
         </DialogHeader>
 
@@ -296,24 +304,11 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
           <div className="mb-6">
             <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">TCM Actions</h3>
 
-            {herb.tcmActions && (
-              typeof herb.tcmActions === 'string' 
-                ? (() => {
-                    try {
-                      const parsedActions = JSON.parse(herb.tcmActions as string);
-                      console.log("TCM Actions parsed from string:", parsedActions);
-                      return Array.isArray(parsedActions) && parsedActions.length > 0;
-                    } catch (e) {
-                      console.error("Failed to parse tcmActions string:", e);
-                      return false;
-                    }
-                  })()
-                : Array.isArray(herb.tcmActions) && herb.tcmActions.length > 0
-            ) ? (
+            {parsedTcmActions && parsedTcmActions.length > 0 ? (
               <div className="space-y-4">
                 {/* Usar el componente Accordion de shadcn/ui */}
                 <Accordion type="multiple" className="divide-y divide-gray-100">
-                  {herb.tcmActions.map((action, index) => (
+                  {parsedTcmActions.map((action: any, index: number) => (
                     <AccordionItem 
                       key={index} 
                       value={`action-${index}`}
@@ -332,20 +327,22 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
                         {/* Patrones clínicos */}
                         {action.clinicalUses && action.clinicalUses.length > 0 ? (
                           <div className="space-y-3">
-                            {action.clinicalUses.map((pattern, patternIdx) => (
+                            {action.clinicalUses.map((pattern: any, patternIdx: number) => (
                               <div key={patternIdx} className="mt-2">
                                 {/* Patrón clínico */}
-                                <div className="pl-3 py-1 border-l-2 border-primary/40 mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <Circle className="h-2 w-2 text-primary fill-primary/70" />
-                                    <h5 className="font-medium text-sm text-gray-800">{pattern.pattern}</h5>
+                                {pattern.pattern && (
+                                  <div className="pl-3 py-1 border-l-2 border-primary/40 mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <Circle className="h-2 w-2 text-primary fill-primary/70" />
+                                      <h5 className="font-medium text-sm text-gray-800">{pattern.pattern}</h5>
+                                    </div>
                                   </div>
-                                </div>
+                                )}
 
                                 {/* Casos clínicos */}
                                 {pattern.cases && pattern.cases.length > 0 && (
                                   <div className="pl-5 space-y-3">
-                                    {pattern.cases.map((caseItem, caseIdx) => (
+                                    {pattern.cases.map((caseItem: any, caseIdx: number) => (
                                       <div key={caseIdx} className="border-l border-gray-200 pl-3">
                                         {/* Descripción del caso */}
                                         {caseItem.description && (
@@ -357,7 +354,7 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
                                         {/* Combinaciones de la hierba */}
                                         {Array.isArray(caseItem.combinations) && caseItem.combinations.length > 0 && (
                                           <div className="space-y-2">
-                                            {caseItem.combinations.map((combo, comboIdx) => (
+                                            {caseItem.combinations.map((combo: any, comboIdx: number) => (
                                               <div 
                                                 key={comboIdx} 
                                                 className="text-xs bg-gray-50 p-2 rounded border border-gray-100"
@@ -374,7 +371,7 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
                                                 {/* Combinación con otras hierbas y fórmula */}
                                                 {Array.isArray(combo.herbs) && combo.herbs.length > 0 && (
                                                   <div className="flex flex-wrap items-center gap-1 mb-1">
-                                                    {combo.herbs.map((herb, herbIdx) => (
+                                                    {combo.herbs.map((herb: any, herbIdx: number) => (
                                                       <Badge 
                                                         key={herbIdx}
                                                         variant="outline" 
@@ -437,11 +434,11 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
           </div>
 
           {/* Efectos farmacológicos */}
-          {herb.pharmacologicalEffects && herb.pharmacologicalEffects.length > 0 && (
+          {herb.pharmacological_effects && herb.pharmacological_effects.length > 0 && (
             <div className="mb-6">
               <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Efectos Farmacológicos</h3>
               <div className="flex flex-wrap gap-2">
-                {herb.pharmacologicalEffects.map((effect, index) => (
+                {herb.pharmacological_effects.map((effect: any, index: number) => (
                   <Badge key={index} variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
                     {effect}
                   </Badge>
@@ -451,11 +448,11 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
           )}
 
           {/* Efectos biológicos */}
-          {herb.biologicalEffects && herb.biologicalEffects.length > 0 && (
+          {herb.biological_effects && herb.biological_effects.length > 0 && (
             <div className="mb-6">
               <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Efectos Biológicos</h3>
               <div className="flex flex-wrap gap-2">
-                {herb.biologicalEffects.map((effect, index) => (
+                {herb.biological_effects.map((effect: any, index: number) => (
                   <Badge key={index} variant="outline" className="bg-green-100 text-green-800 border-green-200">
                     {effect}
                   </Badge>
@@ -467,13 +464,16 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
           {/* Contraindicaciones */}
           {herb.contraindications && (
             <div className="mb-6">
-              <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Contraindicaciones</h3>
+              <h3 className="font-semibold mb-3 text-base border-b pb-2 text-red-600">Contraindicaciones</h3>
               <div className="flex flex-wrap gap-2">
-                {herb.contraindications.split(',').map((contraindication, index) => (
-                  <Badge key={index} variant="outline" className="bg-red-100 text-red-800 border-red-200">
-                    {contraindication.trim()}
-                  </Badge>
-                ))}
+                {Array.isArray(herb.contraindications) ? 
+                  herb.contraindications.map((contraindication: any, index: number) => (
+                    <Badge key={index} variant="outline" className="bg-red-100 text-red-800 border-red-200">
+                      {contraindication}
+                    </Badge>
+                  )) : 
+                  <p className="text-sm text-gray-700">{herb.contraindications}</p>
+                }
               </div>
             </div>
           )}
@@ -481,33 +481,36 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
           {/* Precauciones */}
           {herb.cautions && (
             <div className="mb-6">
-              <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Precauciones</h3>
+              <h3 className="font-semibold mb-3 text-base border-b pb-2 text-orange-600">Precauciones</h3>
               <div className="flex flex-wrap gap-2">
-                {herb.cautions.split(',').map((caution, index) => (
-                  <Badge key={index} variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                    {caution.trim()}
-                  </Badge>
-                ))}
+                {Array.isArray(herb.cautions) ? 
+                  herb.cautions.map((caution: any, index: number) => (
+                    <Badge key={index} variant="outline" className="bg-orange-100 text-orange-800 border-orange-200">
+                      {caution}
+                    </Badge>
+                  )) : 
+                  <p className="text-sm text-gray-700">{herb.cautions}</p>
+                }
               </div>
             </div>
           )}
 
           {/* Consideraciones durante el embarazo */}
-          {herb.pregnancyConsiderations && (
+          {herb.pregnancy_considerations && (
             <div className="mb-6">
               <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Embarazo</h3>
               <Badge variant="outline" className="bg-pink-100 text-pink-800 border-pink-200 px-3 py-1">
-                {herb.pregnancyConsiderations}
+                {herb.pregnancy_considerations}
               </Badge>
             </div>
           )}
 
-          {/* Interacciones con fármacos */}
-          {herb.herbDrugInteractions && herb.herbDrugInteractions.length > 0 && (
+          {/* Interacciones con medicamentos */}
+          {herb.herb_drug_interactions && herb.herb_drug_interactions.length > 0 && (
             <div className="mb-6">
-              <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Interacciones con Fármacos</h3>
+              <h3 className="font-semibold mb-3 text-base border-b pb-2 text-purple-600">Interacciones con Medicamentos</h3>
               <div className="flex flex-wrap gap-2">
-                {herb.herbDrugInteractions.map((interaction, index) => (
+                {herb.herb_drug_interactions.map((interaction: any, index: number) => (
                   <Badge key={index} variant="outline" className="bg-purple-100 text-purple-800 border-purple-200">
                     {interaction}
                   </Badge>
@@ -517,26 +520,26 @@ const HerbPreview: React.FC<HerbPreviewProps> = ({
           )}
 
           {/* Referencias */}
-          {herb.references && herb.references.length > 0 && (
+          {(herb.reference_list || herb.references_list) && (herb.reference_list?.length > 0 || herb.references_list?.length > 0) && (
             <div className="mb-6">
               <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Referencias</h3>
-              <ul className="list-disc pl-5 space-y-2">
-                {herb.references.map((reference, index) => (
-                  <li key={index} className="text-sm italic text-gray-600">{reference}</li>
+              <div className="space-y-1">
+                {(herb.reference_list || herb.references_list || []).map((reference: any, index: number) => (
+                  <p key={index} className="text-sm text-gray-600">• {reference}</p>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
-          {/* Estudios clínicos */}
-          {herb.clinicalStudiesAndResearch && herb.clinicalStudiesAndResearch.length > 0 && (
+          {/* Estudios clínicos e investigaciones */}
+          {herb.clinical_studies_and_research && herb.clinical_studies_and_research.length > 0 && (
             <div className="mb-6">
-              <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Estudios Clínicos</h3>
-              <ul className="list-disc pl-5 space-y-2">
-                {herb.clinicalStudiesAndResearch.map((study, index) => (
-                  <li key={index} className="text-sm">{study}</li>
+              <h3 className="font-semibold mb-3 text-base border-b pb-2 text-primary">Estudios Clínicos e Investigaciones</h3>
+              <div className="space-y-1">
+                {herb.clinical_studies_and_research.map((study: any, index: number) => (
+                  <p key={index} className="text-sm text-gray-600">• {study}</p>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 

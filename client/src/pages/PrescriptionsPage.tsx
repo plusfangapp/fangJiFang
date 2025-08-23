@@ -39,18 +39,27 @@ export default function PrescriptionsPage() {
       custom: []
     };
     
+    const defaultMedications = {
+      custom: []
+    };
+    
     // Intentar extraer condiciones médicas del customFormula si existe
     let medicalConditions = defaultMedicalConditions;
+    let medications = defaultMedications;
     
-    if (prescription.customFormula) {
+    if (prescription.custom_formula) {
       try {
         // Si es un string, convertirlo a objeto
-        const customFormula = typeof prescription.customFormula === 'string' 
-          ? JSON.parse(prescription.customFormula) 
-          : prescription.customFormula;
+        const customFormula = typeof prescription.custom_formula === 'string' 
+          ? JSON.parse(prescription.custom_formula) 
+          : prescription.custom_formula;
         
         if (customFormula.medicalConditions) {
           medicalConditions = customFormula.medicalConditions;
+        }
+        
+        if (customFormula.medications) {
+          medications = customFormula.medications;
         }
       } catch (error) {
         console.error("Error al procesar condiciones médicas de la prescripción:", error);
@@ -58,71 +67,99 @@ export default function PrescriptionsPage() {
     }
     
     // Si no hay condiciones personalizadas en la prescripción, cargar las del localStorage
-    if (!medicalConditions.custom || medicalConditions.custom.length === 0) {
+    if (medicalConditions.custom.length === 0) {
       try {
         const savedConditions = localStorage.getItem('medicalConditions');
         if (savedConditions) {
           const userConditions = JSON.parse(savedConditions);
-          // Convertir las condiciones al formato de prescripción (inactive por defecto)
-          const customConditions = userConditions.map((condition: {id: string, name: string}) => ({
-            id: condition.id,
-            name: condition.name,
-            active: false
-          }));
-          
-          medicalConditions.custom = customConditions;
+          medicalConditions = {
+            custom: userConditions.map((condition: {id: string, name: string}) => ({
+              id: condition.id,
+              name: condition.name,
+              active: false
+            }))
+          };
         }
       } catch (error) {
         console.error("Error al cargar condiciones médicas desde localStorage:", error);
       }
     }
     
+    // Si no hay medicaciones personalizadas en la prescripción, cargar las del localStorage
+    if (medications.custom.length === 0) {
+      try {
+        const savedMedications = localStorage.getItem('medications');
+        if (savedMedications) {
+          const userMedications = JSON.parse(savedMedications);
+          medications = {
+            custom: userMedications.map((medication: {id: number, name: string, dosage: string, frequency: string}) => ({
+              id: medication.id,
+              name: medication.name,
+              dosage: medication.dosage,
+              frequency: medication.frequency,
+              active: false
+            }))
+          };
+        }
+      } catch (error) {
+        console.error("Error al cargar medicaciones desde localStorage:", error);
+      }
+    }
+    
     const prescriptionData: PrescriptionData = {
-      date: prescription.dateCreated ? format(new Date(prescription.dateCreated), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
-      number: prescription.id.toString(),
-      notes: prescription.notes || "",
-      patientName: prescription.patient?.name || "",
-      duration: prescription.duration || "",
-      instructions: prescription.instructions || "",
+      date: prescription?.dateCreated || format(new Date(), "yyyy-MM-dd"),
+      number: `#${prescription?.id || 0}`,
+      name: prescription?.name || "Fórmula personalizada",
+      notes: prescription?.notes || "",
+      patientName: prescription?.patient?.name || "",
+      patientEmail: prescription?.patient?.identifier || "",
+      patientPhone: prescription?.patient?.contact_info || "",
+      patientAddress: prescription?.patient?.medical_history || "",
+      instructions: prescription?.instructions || "",
+      duration: prescription?.duration || "",
+      customFormula: prescription?.custom_formula || null,
       medicalConditions: medicalConditions,
+      medications: medications,
       items: []
     };
     
-    // Si hay un formulaId, entonces es una fórmula estándar
-    if (prescription.formulaId && prescription.formula) {
-      prescriptionData.items = [{
-        type: 'formula',
-        formula: prescription.formula,
-        quantity: prescription.quantity || 100,
-      }];
-    }
-    
-    // Si hay customFormula, extraemos los datos
-    if (prescription.customFormula) {
+        // Si hay customFormula, extraemos los datos
+    if (prescription.custom_formula) {
       try {
-        const customFormula = typeof prescription.customFormula === 'string' 
-          ? JSON.parse(prescription.customFormula) 
-          : prescription.customFormula;
+        const customFormula = typeof prescription.custom_formula === 'string'
+          ? JSON.parse(prescription.custom_formula)
+          : prescription.custom_formula;
         
         // Verificar si tenemos hierbas en esta fórmula personalizada
         if (customFormula && customFormula.herbs && Array.isArray(customFormula.herbs)) {
-          // Añadir cada hierba como un item
-          customFormula.herbs.forEach((herb: any) => {
-            prescriptionData.items.push({
-              type: 'herb',
-              herb: {
-                id: herb.herbId || 0,
+          // Crear una fórmula con las hierbas como composición
+          const formulaItem: PrescriptionItem = {
+            type: 'formula',
+            id: prescription.formula_id || customFormula.formulaId || 0,
+            quantity: 100, // Total quantity for the formula
+            formula: {
+              id: prescription.formula_id || customFormula.formulaId || 0,
+              pinyin_name: prescription.formula?.pinyin_name || customFormula.name || "Fórmula personalizada",
+              chinese_name: prescription.formula?.chinese_name || "",
+              english_name: prescription.formula?.english_name || customFormula.name || "Custom Formula",
+              category: customFormula.category || "",
+              composition: customFormula.herbs,
+              herbs: customFormula.herbs.map((herb: any) => ({
+                id: herb.herbId || herb.id || 0,
                 pinyinName: herb.name || herb.pinyinName || "",
-                latinName: herb.latinName || null,
                 chineseName: herb.chineseName || "",
-                englishName: herb.englishName || null,
-                category: null,
-                grams: herb.grams || null,
-                dosage: herb.dosage || null
-              },
-              quantity: herb.dosage ? parseFloat(herb.dosage) : null
-            });
-          });
+                latinName: herb.latinName || "",
+                englishName: herb.englishName || "",
+                percentage: herb.percentage || 0,
+                grams: herb.grams || 0,
+                function: herb.function || ""
+              })),
+              // Add custom formula data for rich display
+              customFormula: customFormula
+            }
+          };
+          
+          prescriptionData.items.push(formulaItem);
         }
       } catch (e) {
         console.error("Error parsing customFormula:", e);
@@ -161,7 +198,7 @@ export default function PrescriptionsPage() {
     
     return (
       prescription.patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      prescription.formula.pinyinName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (prescription.formula?.pinyin_name || prescription.formula?.pinyinName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
       diagnosisText.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
@@ -252,7 +289,7 @@ export default function PrescriptionsPage() {
                             {/* Formula name */}
                             <div className="text-sm text-gray-700">
                               <div className="font-medium truncate">
-                                {prescription.formula?.pinyinName || ''}
+                                {prescription.formula?.pinyin_name || prescription.formula?.pinyinName || ''}
                               </div>
                             </div>
                             
@@ -288,8 +325,8 @@ export default function PrescriptionsPage() {
           <DialogHeader className="print:hidden">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-xl font-semibold">
-                {selectedPrescription?.formula?.pinyinName || (
-                  selectedPrescription?.customFormula ? "Fórmula Personalizada" : "Detalles de la Prescripción"
+                {selectedPrescription?.formula?.pinyin_name || selectedPrescription?.formula?.pinyinName || (
+                  selectedPrescription?.custom_formula ? "Fórmula Personalizada" : "Detalles de la Prescripción"
                 )}
               </DialogTitle>
             </div>

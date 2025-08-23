@@ -1,0 +1,273 @@
+[
+  {
+    "pinyin_name": "Ren Shen",
+    "chinese_name": "人参",
+    "latin_name": "Radix Ginseng",
+    "english_name": "Ginseng Root",
+    "category": "Qi Tonification Herbs",
+    "nature": "Slightly warm",
+    "flavor": "Sweet, slightly bitter",
+    "toxicity": "Low toxicity",
+    "meridians": ["Lung", "Spleen", "Heart"],
+    "dosage": "3-9g",
+    "preparation": "Decoction, powder, extract",
+    "primary_functions": {
+      "tonifies_qi": "Tonifies the Qi of the Spleen and Lungs",
+      "generates_fluids": "Generates body fluids",
+      "calms_spirit": "Calms the spirit and quiets the mind"
+    },
+    "clinical_patterns": {
+      "qi_deficiency": "Qi deficiency of Spleen and Lungs",
+      "fluid_deficiency": "Fluid deficiency with thirst",
+      "spirit_agitation": "Spirit agitation and insomnia"
+    },
+    "therapeutic_actions": [
+      "Tonifies Qi",
+      "Generates fluids",
+      "Calms spirit",
+      "Strengthens Spleen"
+    ],
+    "tcm_actions": {
+      "primary": "Tonifies Qi",
+      "secondary": ["Generates fluids", "Calms spirit"]
+    },
+    "combinations": {
+      "synergistic": [
+        "Bai Zhu (Atractylodes) - for Spleen Qi deficiency",
+        "Fu Ling (Poria) - for dampness with Qi deficiency"
+      ],
+      "antagonistic": [
+        "Avoid with excess heat patterns"
+      ]
+    },
+    "synergistic_pairs": [
+      {
+        "herb": "Bai Zhu",
+        "effect": "Enhances Spleen tonification"
+      },
+      {
+        "herb": "Fu Ling",
+        "effect": "Combines Qi tonification with dampness resolution"
+      }
+    ],
+    "antagonistic_pairs": [
+      {
+        "herb": "Shi Gao",
+        "effect": "Contraindicated in cold patterns"
+      }
+    ],
+    "standard_indications": "Qi deficiency, fatigue, shortness of breath, poor appetite, spontaneous sweating",
+    "special_indications": {
+      "pregnancy": "Use with caution during pregnancy",
+      "children": "Reduced dosage for children",
+      "elderly": "Excellent for elderly Qi deficiency"
+    },
+    "preparation_methods": {
+      "decoction": "3-9g in decoction",
+      "powder": "1-3g as powder",
+      "extract": "Follow manufacturer instructions"
+    },
+    "contraindications": "Excess heat patterns, yang excess, early stage of external invasion",
+    "cautions": "Use with caution in cases of excess heat or yang excess",
+    "pregnancy_considerations": "Use with caution during pregnancy, especially in first trimester",
+    "biological_effects": {
+      "adaptogenic": "Enhances resistance to stress",
+      "immunomodulatory": "Modulates immune function",
+      "cardiovascular": "Improves cardiovascular function"
+    },
+    "clinical_evidence": {
+      "studies": [
+        "Multiple studies support adaptogenic effects",
+        "Clinical trials show improved fatigue and quality of life"
+      ],
+      "meta_analyses": "Positive effects on fatigue and stress reduction"
+    },
+    "herb_drug_interactions": [
+      {
+        "drug": "Warfarin",
+        "effect": "May increase bleeding risk",
+        "recommendation": "Monitor INR closely"
+      },
+      {
+        "drug": "Insulin",
+        "effect": "May enhance hypoglycemic effect",
+        "recommendation": "Monitor blood glucose"
+      }
+    ],
+    "references_list": [
+      "Chinese Herbal Medicine: Materia Medica by Bensky",
+      "The Web That Has No Weaver by Kaptchuk",
+      "Traditional Chinese Medicine: Theory and Practice by Maciocia"
+    ],
+    "properties": "Sweet, slightly bitter, slightly warm",
+    "notes": "Considered the king of tonifying herbs in TCM. Best quality from Jilin province in China.",
+    "functions": [
+      "Tonifies Qi",
+      "Generates fluids",
+      "Calms spirit",
+      "Strengthens Spleen",
+      "Benefits Lungs"
+    ],
+    "applications": "Used for Qi deficiency patterns, especially of Spleen and Lungs. Excellent for fatigue, poor appetite, and spontaneous sweating.",
+    "secondary_actions": {
+      "nourishes_blood": "Indirectly nourishes blood through Qi generation",
+      "strengthens_wei_qi": "Strengthens defensive Qi"
+    },
+    "common_combinations": [
+      {
+        "formula": "Si Jun Zi Tang",
+        "herbs": ["Ren Shen", "Bai Zhu", "Fu Ling", "Zhi Gan Cao"],
+        "indication": "Spleen Qi deficiency"
+      },
+      {
+        "formula": "Sheng Mai San",
+        "herbs": ["Ren Shen", "Mai Men Dong", "Wu Wei Zi"],
+        "indication": "Qi and Yin deficiency"
+      }
+    ],
+    "pharmacological_effects": [
+      "Adaptogenic activity",
+      "Immunomodulatory effects",
+      "Cardiovascular protection",
+      "Anti-fatigue effects"
+    ],
+    "laboratory_effects": [
+      "Increases natural killer cell activity",
+      "Improves glucose metabolism",
+      "Enhances antioxidant capacity"
+    ],
+    "clinical_studies_and_research": [
+      "Multiple RCTs show efficacy for fatigue",
+      "Meta-analysis supports adaptogenic effects",
+      "Clinical studies demonstrate safety profile"
+    ]
+  },
+  {
+    "pinyin_name": "Bai Zhu",
+    "chinese_name": "白术",
+    "latin_name": "Rhizoma Atractylodis Macrocephalae",
+    "english_name": "White Atractylodes",
+    "category": "Qi Tonification Herbs",
+    "nature": "Warm",
+    "flavor": "Sweet, bitter",
+    "toxicity": "Low toxicity",
+    "meridians": ["Spleen", "Stomach"],
+    "dosage": "6-15g",
+    "preparation": "Decoction, powder, extract",
+    "primary_functions": {
+      "tonifies_spleen": "Tonifies Spleen Qi",
+      "dries_dampness": "Dries dampness",
+      "stabilizes": "Stabilizes and astringes"
+    },
+    "clinical_patterns": {
+      "spleen_qi_deficiency": "Spleen Qi deficiency",
+      "dampness": "Dampness accumulation",
+      "edema": "Edema and water retention"
+    },
+    "therapeutic_actions": [
+      "Tonifies Spleen Qi",
+      "Dries dampness",
+      "Stabilizes and astringes",
+      "Benefits Stomach"
+    ],
+    "tcm_actions": {
+      "primary": "Tonifies Spleen Qi",
+      "secondary": ["Dries dampness", "Stabilizes"]
+    },
+    "combinations": {
+      "synergistic": [
+        "Ren Shen (Ginseng) - for Spleen Qi deficiency",
+        "Fu Ling (Poria) - for dampness resolution"
+      ],
+      "antagonistic": [
+        "Avoid with Yin deficiency"
+      ]
+    },
+    "synergistic_pairs": [
+      {
+        "herb": "Ren Shen",
+        "effect": "Enhances Spleen tonification"
+      },
+      {
+        "herb": "Fu Ling",
+        "effect": "Combines Qi tonification with dampness resolution"
+      }
+    ],
+    "antagonistic_pairs": [
+      {
+        "herb": "Shi Gao",
+        "effect": "Contraindicated in cold patterns"
+      }
+    ],
+    "standard_indications": "Spleen Qi deficiency, poor appetite, loose stools, edema, spontaneous sweating",
+    "special_indications": {
+      "pregnancy": "Generally safe during pregnancy",
+      "children": "Reduced dosage for children",
+      "elderly": "Excellent for elderly Spleen deficiency"
+    },
+    "preparation_methods": {
+      "decoction": "6-15g in decoction",
+      "powder": "2-6g as powder",
+      "extract": "Follow manufacturer instructions"
+    },
+    "contraindications": "Yin deficiency with heat, excess heat patterns",
+    "cautions": "Use with caution in cases of Yin deficiency",
+    "pregnancy_considerations": "Generally safe during pregnancy",
+    "biological_effects": {
+      "digestive": "Improves digestive function",
+      "diuretic": "Mild diuretic effect",
+      "immunomodulatory": "Modulates immune function"
+    },
+    "clinical_evidence": {
+      "studies": [
+        "Studies support digestive benefits",
+        "Clinical trials show efficacy for diarrhea"
+      ],
+      "meta_analyses": "Positive effects on digestive disorders"
+    },
+    "herb_drug_interactions": [
+      {
+        "drug": "Diuretics",
+        "effect": "May enhance diuretic effect",
+        "recommendation": "Monitor fluid balance"
+      }
+    ],
+    "references_list": [
+      "Chinese Herbal Medicine: Materia Medica by Bensky",
+      "The Web That Has No Weaver by Kaptchuk"
+    ],
+    "properties": "Sweet, bitter, warm",
+    "notes": "Essential herb for Spleen Qi deficiency patterns. Often used in combination with other tonifying herbs.",
+    "functions": [
+      "Tonifies Spleen Qi",
+      "Dries dampness",
+      "Stabilizes and astringes",
+      "Benefits Stomach"
+    ],
+    "applications": "Used for Spleen Qi deficiency patterns, especially with dampness. Excellent for poor appetite, loose stools, and edema.",
+    "secondary_actions": {
+      "stops_sweating": "Stops spontaneous sweating",
+      "prevents_miscarriage": "Prevents miscarriage in Spleen deficiency"
+    },
+    "common_combinations": [
+      {
+        "formula": "Si Jun Zi Tang",
+        "herbs": ["Ren Shen", "Bai Zhu", "Fu Ling", "Zhi Gan Cao"],
+        "indication": "Spleen Qi deficiency"
+      }
+    ],
+    "pharmacological_effects": [
+      "Digestive enhancement",
+      "Diuretic activity",
+      "Immunomodulatory effects"
+    ],
+    "laboratory_effects": [
+      "Improves digestive enzyme activity",
+      "Enhances intestinal absorption"
+    ],
+    "clinical_studies_and_research": [
+      "Clinical studies show efficacy for chronic diarrhea",
+      "Research supports digestive benefits"
+    ]
+  }
+]

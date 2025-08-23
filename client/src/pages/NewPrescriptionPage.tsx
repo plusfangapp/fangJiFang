@@ -21,6 +21,7 @@ import PrintablePrescription from "@/components/PrintablePrescription";
 import PrescriptionPreviewDialog from "@/components/PrescriptionPreviewDialog";
 import { Herb, Formula, FormulaWithHerbs } from "@/types";
 import { PrescriptionData, HerbWithGrams, PrescriptionItem } from "@/types";
+import { prescriptionsApi } from "@/lib/api";
 
 export default function NewPrescriptionPage() {
   const [location, navigate] = useLocation();
@@ -267,20 +268,8 @@ export default function NewPrescriptionPage() {
   // Mutación para guardar la prescripción
   const savePrescriptionMutation = useMutation({
     mutationFn: async (prescription: any) => {
-      // Get current user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        throw new Error('User not authenticated');
-      }
-
-      const { data, error } = await supabase
-        .from('prescriptions')
-        .insert({ ...prescription, user_id: user.id })
-        .select()
-        .single();
-      
-      if (error) throw new Error(error.message || 'Error al guardar la prescripción');
-      return data;
+      // Use the prescriptionsApi instead of fetch
+      return await prescriptionsApi.create(prescription);
     },
     onSuccess: (data) => {
       toast({
@@ -341,48 +330,98 @@ export default function NewPrescriptionPage() {
 
       toast({
         title: "Hierba actualizada",
-        description: `La cantidad de ${herb.pinyinName || herb.pinyin_name || 'hierba'} ha sido incrementada en ${incrementAmount}.`,
+        description: `La cantidad de ${herb.pinyin_name || herb.pinyinName || 'hierba'} ha sido incrementada en ${incrementAmount}.`,
       });
     } else {
       // Si hay información de gramos, la usamos como cantidad inicial
       const initialQuantity = herbGrams || 1;
 
-      setCurrentPrescription(prev => ({
-        ...prev,
-        items: [
-          ...prev.items,
-          {
-            id: herb.id,
-            type: "herb",
-            quantity: initialQuantity,
-            herb
-          }
-        ]
-      }));
+                  setCurrentPrescription(prev => ({
+              ...prev,
+              items: [
+                ...prev.items,
+                {
+                  id: herb.id,
+                  type: "herb",
+                  quantity: initialQuantity,
+                  herb: {
+                    ...herb,
+                    // Ensure we have the correct field names
+                    pinyin_name: herb.pinyin_name || herb.pinyinName,
+                    chinese_name: herb.chinese_name || herb.chineseName,
+                    latin_name: herb.latin_name || herb.latinName,
+                    english_name: herb.english_name || herb.englishName
+                  }
+                }
+              ]
+            }));
 
       toast({
         title: "Hierba añadida",
-        description: `${herb.pinyinName || herb.pinyin_name || 'Hierba'} ha sido añadida a la prescripción con cantidad ${initialQuantity}.`,
+        description: `${herb.pinyin_name || herb.pinyinName || 'Hierba'} ha sido añadida a la prescripción con cantidad ${initialQuantity}.`,
       });
     }
   };
 
-  const addFormulaToPrescription = (formula: FormulaWithHerbs) => {
+  const addFormulaToPrescription = async (formula: FormulaWithHerbs) => {
     // Registro detallado para depuración
     console.log("Añadiendo fórmula a prescripción:", formula);
     console.log("Cantidad especificada:", (formula as any).quantity || 100, "g");
     console.log("Hierbas en fórmula:", formula.herbs);
 
+    // Fetch complete formula details from API if we only have basic info
+    let completeFormula = formula;
+    if (!formula.composition && !formula.herbs) {
+      try {
+        console.log("Fetching complete formula details for ID:", formula.id);
+        const { formulasApi } = await import('@/lib/api');
+        completeFormula = await formulasApi.getFormulaWithComposition(formula.id);
+        console.log("Fetched formula details:", completeFormula);
+      } catch (error) {
+        console.error("Error fetching formula details:", error);
+        toast({
+          title: "Error",
+          description: "No se pudo cargar los detalles de la fórmula.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const existingItem = currentPrescription.items.find(
-      item => item.type === "formula" && item.formula && item.formula.id === formula.id
+      item => item.type === "formula" && item.formula && item.formula.id === completeFormula.id
     );
 
     // IMPORTANTE: Las fórmulas siempre se estandarizan a 100g y los porcentajes se calculan en base a esto
     // Verificar si hay una cantidad específica en la fórmula o usar el valor predeterminado
-    const requestedQuantity = (formula as any).totalGrams || (formula as any).quantity || 100;
+    const requestedQuantity = (completeFormula as any).totalGrams || (completeFormula as any).quantity || 100;
+
+    // Extract herbs from composition or herbs array
+    let formulaHerbs = completeFormula.herbs || [];
+    if (completeFormula.composition && !formulaHerbs.length) {
+      // Parse composition to get herbs
+      if (Array.isArray(completeFormula.composition)) {
+        formulaHerbs = completeFormula.composition;
+      } else if (completeFormula.composition.herbs && Array.isArray(completeFormula.composition.herbs)) {
+        formulaHerbs = completeFormula.composition.herbs;
+      }
+    }
+
+    // Ensure herb names are properly extracted from the composition
+    formulaHerbs = formulaHerbs.map((herb: any) => {
+      // Extract herb name from various possible fields
+      const herbName = herb.herb || herb.pinyinName || herb.name || herb.pinyin_name || herb.chineseName || "Hierba sin nombre";
+      
+      return {
+        ...herb,
+        herb: herbName, // Ensure herb name is in the herb field
+        name: herbName, // Also preserve in name field for compatibility
+        pinyinName: herbName // Also preserve in pinyinName field for compatibility
+      };
+    });
 
     // Total actual de gramos en la fórmula para calcular el factor de escala
-    const sumOfGrams = formula.herbs?.reduce((sum, herb) => sum + (herb.grams || 0), 0) || 0;
+    const sumOfGrams = formulaHerbs.reduce((sum: number, herb: any) => sum + (herb.grams || 0), 0) || 0;
     console.log("Total de gramos original:", sumOfGrams, "g");
     console.log("Cantidad solicitada:", requestedQuantity, "g");
 
@@ -397,10 +436,10 @@ export default function NewPrescriptionPage() {
       // Actualizar la fórmula y todas sus hierbas manteniendo sus proporciones 
       const updatedFormula = {
         ...existingItem.formula as FormulaWithHerbs,
-        herbs: (existingItem.formula as FormulaWithHerbs).herbs?.map(herb => {
+        herbs: (existingItem.formula as FormulaWithHerbs).herbs?.map((herb: any) => {
           // Calculamos los nuevos gramos exactos manteniendo la misma proporción
           const scaledGrams = herb.grams ? Math.round((herb.grams * ratio) * 10) / 10 : undefined;
-          console.log(`Hierba ${herb.pinyinName}: ${herb.grams}g → ${scaledGrams}g`);
+          console.log(`Hierba ${herb.pinyinName || herb.name}: ${herb.grams}g → ${scaledGrams}g`);
 
           return {
             ...herb,
@@ -427,19 +466,25 @@ export default function NewPrescriptionPage() {
 
       toast({
         title: "Fórmula actualizada",
-        description: `La cantidad de ${formula.pinyinName} ha sido incrementada a ${newQuantity}g.`,
+        description: `La cantidad de ${completeFormula.pinyin_name || completeFormula.pinyinName} ha sido incrementada a ${newQuantity}g.`,
       });
     } else {
       // Es una nueva fórmula que se añade a la prescripción
       console.log("Añadiendo nueva fórmula con", requestedQuantity, "g");
 
       // Necesitamos calcular los porcentajes exactos basados en 100g (estándar)
-      const standardizedHerbs = formula.herbs?.map(herb => {
+      const standardizedHerbs = formulaHerbs.map((herb: any) => {
+        // Herb name is already preserved from the previous processing
+        const herbName = herb.herb || herb.pinyinName || herb.name || herb.pinyin_name || herb.chineseName || "Hierba sin nombre";
+        
         // Si no hay gramos, calcular porcentaje por defecto
         if (!herb.grams && !herb.percentage) {
-          const defaultPercentage = 100 / (formula.herbs?.length || 1);
+          const defaultPercentage = 100 / (formulaHerbs.length || 1);
           return {
             ...herb,
+            herb: herbName, // Preserve the herb name
+            name: herbName, // Also preserve in name field
+            pinyinName: herbName, // Also preserve in pinyinName field
             percentage: Math.round(defaultPercentage * 10) / 10,
             grams: Math.round((defaultPercentage * requestedQuantity / 100) * 10) / 10
           };
@@ -449,6 +494,9 @@ export default function NewPrescriptionPage() {
         if (herb.percentage && !herb.grams) {
           return {
             ...herb,
+            herb: herbName, // Preserve the herb name
+            name: herbName, // Also preserve in name field
+            pinyinName: herbName, // Also preserve in pinyinName field
             grams: Math.round((herb.percentage * requestedQuantity / 100) * 10) / 10
           };
         }
@@ -458,38 +506,45 @@ export default function NewPrescriptionPage() {
           // Normalizar a porcentaje respecto al total
           const percentage = sumOfGrams > 0 
             ? (herb.grams / sumOfGrams) * 100
-            : 100 / (formula.herbs?.length || 1);
+            : 100 / (formulaHerbs.length || 1);
 
           const exactGrams = Math.round((percentage * requestedQuantity / 100) * 10) / 10;
 
           return {
             ...herb,
+            herb: herbName, // Preserve the herb name
+            name: herbName, // Also preserve in name field
+            pinyinName: herbName, // Also preserve in pinyinName field
             percentage: Math.round(percentage * 10) / 10,
             grams: exactGrams
           };
         }
 
         // Si ambos están definidos, respetar porcentaje y calcular gramos según cantidad solicitada
-        const exactGrams = Math.round((herb.percentage * requestedQuantity / 100) * 10) / 10;
+        const exactGrams = Math.round(((herb.percentage || 0) * requestedQuantity / 100) * 10) / 10;
 
         return {
           ...herb,
+          herb: herbName, // Preserve the herb name
+          name: herbName, // Also preserve in name field
+          pinyinName: herbName, // Also preserve in pinyinName field
           grams: exactGrams
         };
-      }) || [];
+      });
 
       // Verificar que la suma de gramos es exactamente igual a la cantidad solicitada
       const calculatedTotal = standardizedHerbs.reduce((sum, herb) => sum + (herb.grams || 0), 0);
       console.log("Total calculado:", calculatedTotal, "g", "Solicitado:", requestedQuantity, "g");
 
       // Registrar cada hierba para depuración
-      standardizedHerbs.forEach(herb => {
-        console.log(`Hierba: ${herb.pinyinName}, Porcentaje: ${herb.percentage}%, Gramos: ${herb.grams}g`);
+      standardizedHerbs.forEach((herb: any) => {
+        const herbName = herb.herb || herb.pinyinName || herb.name || herb.pinyin_name || "Hierba sin nombre";
+        console.log(`Hierba: ${herbName}, Porcentaje: ${herb.percentage}%, Gramos: ${herb.grams}g`);
       });
 
       // Crear la versión final de la fórmula con valores calculados
       const finalFormula = {
-        ...formula,
+        ...completeFormula,
         totalGrams: requestedQuantity,
         herbs: standardizedHerbs
       };
@@ -500,7 +555,7 @@ export default function NewPrescriptionPage() {
         items: [
           ...prev.items,
           {
-            id: formula.id,
+            id: completeFormula.id,
             type: "formula",
             quantity: requestedQuantity,
             formula: finalFormula
@@ -510,7 +565,7 @@ export default function NewPrescriptionPage() {
 
       toast({
         title: "Fórmula añadida",
-        description: `${formula.pinyinName} añadida con ${requestedQuantity}g totales.`,
+        description: `${completeFormula.pinyin_name || completeFormula.pinyinName} añadida con ${requestedQuantity}g totales.`,
       });
     }
   };
@@ -1065,8 +1120,8 @@ export default function NewPrescriptionPage() {
             return [{
               herbId: item.herb.id,
               id: item.herb.id, // Duplicar para compatibilidad
-              name: item.herb.pinyinName,
-              pinyinName: item.herb.pinyinName, // Duplicar para compatibilidad
+              name: item.herb.pinyin_name || item.herb.pinyinName,
+              pinyinName: item.herb.pinyin_name || item.herb.pinyinName, // Duplicar para compatibilidad
               chineseName: item.herb.chineseName,
               latinName: item.herb.latinName,
               englishName: item.herb.englishName || '',
@@ -1088,8 +1143,8 @@ export default function NewPrescriptionPage() {
             return item.formula.herbs.map(herb => ({
               herbId: herb.id || 0,
               id: herb.id || 0,
-              name: herb.pinyinName,
-              pinyinName: herb.pinyinName,
+              name: herb.pinyin_name || herb.pinyinName,
+              pinyinName: herb.pinyin_name || herb.pinyinName,
               chineseName: herb.chineseName,
               latinName: herb.latinName || '',
               englishName: herb.englishName || '',

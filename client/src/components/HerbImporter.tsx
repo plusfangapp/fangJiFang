@@ -13,6 +13,7 @@ import {
 import { Upload, AlertCircle, Check, FileJson } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { herbsApi } from "@/lib/api";
 
 interface HerbImporterProps {
   isOpen: boolean;
@@ -62,40 +63,33 @@ const HerbImporter: React.FC<HerbImporterProps> = ({ isOpen, onClose, onSuccess 
     setUploadProgress(0);
 
     try {
-      // Crear FormData para enviar el archivo
-      const formData = new FormData();
-      formData.append("file", file);
-
       setUploadProgress(30);
 
-      // Realizar la petición con fetch en lugar de apiRequest para poder enviar FormData
-      const response = await fetch("/api/herbs/import", {
-        method: "POST",
-        body: formData
-      });
+      // Read the file content
+      const fileContent = await file.text();
+      const herbsData = JSON.parse(fileContent);
 
-      setUploadProgress(70);
+      setUploadProgress(50);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Server Error: ${errorText}`);
-      }
+      // Ensure herbsData is an array
+      const herbsArray = Array.isArray(herbsData) ? herbsData : [herbsData];
 
-      const result = await response.json();
-
-      setUploadStatus({
-        successCount: result.imported || 0,
-        errorCount: result.skipped || 0,
-        errors: result.errors || [],
-      });
+      // Use the herbsApi.import method
+      const importedHerbs = await herbsApi.import(herbsArray);
 
       setUploadProgress(90);
 
-      if (result.imported > 0) {
+      setUploadStatus({
+        successCount: importedHerbs.length,
+        errorCount: 0,
+        errors: [],
+      });
+
+      if (importedHerbs.length > 0) {
         queryClient.invalidateQueries({ queryKey: ["/api/herbs"] });
         toast({
           title: "Import Successful",
-          description: `Successfully imported ${result.imported} herbs.`,
+          description: `Successfully imported ${importedHerbs.length} herbs.`,
         });
         if (onSuccess) {
           onSuccess();
@@ -103,7 +97,7 @@ const HerbImporter: React.FC<HerbImporterProps> = ({ isOpen, onClose, onSuccess 
       } else {
         toast({
           title: "Import Failed",
-          description: "No herbs were imported. Check the error details.",
+          description: "No herbs were imported. Check the JSON format.",
           variant: "destructive",
         });
       }

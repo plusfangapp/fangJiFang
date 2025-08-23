@@ -68,19 +68,19 @@ export default function PatientDetail() {
     console.log("Procesando prescripción:", prescription);
     
     // Procesar el customFormula si existe
-    if (prescription.customFormula) {
+    if (prescription.custom_formula) {
       let customFormulaData;
       try {
         // Parsear customFormula si es un string
-        if (typeof prescription.customFormula === 'string') {
+        if (typeof prescription.custom_formula === 'string') {
           try {
-            customFormulaData = JSON.parse(prescription.customFormula);
+            customFormulaData = JSON.parse(prescription.custom_formula);
           } catch (parseError) {
             console.error("Error al parsear customFormula como JSON:", parseError);
             
             // Limpiar posibles caracteres de escape extras
             try {
-              const cleanString = prescription.customFormula
+              const cleanString = prescription.custom_formula
                 .replace(/\\"/g, '"')
                 .replace(/\\n/g, ' ')
                 .replace(/\\\\/g, '\\');
@@ -94,7 +94,7 @@ export default function PatientDetail() {
             }
           }
         } else {
-          customFormulaData = prescription.customFormula;
+          customFormulaData = prescription.custom_formula;
         }
         
         // Si tenemos hierbas en la fórmula personalizada
@@ -135,17 +135,19 @@ export default function PatientDetail() {
           
           // Agregar la fórmula a los ítems
           prescriptionData.items.push({
-            id: prescription.formulaId || 0,
+            id: prescription.formula_id || 0,
             type: "formula",
             quantity: 100,
             formula: {
-              id: prescription.formulaId || 0,
-              pinyinName: prescription.formula?.pinyinName || "Fórmula personalizada",
-              chineseName: prescription.formula?.chineseName || "",
-              englishName: prescription.formula?.englishName || "",
-              category: prescription.formula?.category || null,
+              id: prescription.formula_id || 0,
+              pinyin_name: prescription.formula?.pinyin_name || customFormulaData.name || "Fórmula personalizada",
+              chinese_name: prescription.formula?.chinese_name || "",
+              english_name: prescription.formula?.english_name || customFormulaData.name || "Custom Formula",
+              category: customFormulaData.category || "",
               composition: customFormulaData.herbs,
-              herbs: herbs
+              herbs: herbs,
+              // Add custom formula data for rich display
+              customFormula: customFormulaData
             }
           });
         }
@@ -155,10 +157,18 @@ export default function PatientDetail() {
     } else if (prescription.formula) {
       // Si no hay customFormula pero hay una fórmula asociada
       prescriptionData.items.push({
-        id: prescription.formulaId || 0,
+        id: prescription.formula_id || 0,
         type: "formula",
         quantity: 100,
-        formula: prescription.formula
+        formula: {
+          id: prescription.formula_id || 0,
+          pinyin_name: prescription.formula?.pinyin_name || prescription.formula?.pinyinName || "",
+          chinese_name: prescription.formula?.chinese_name || prescription.formula?.chineseName || "",
+          english_name: prescription.formula?.english_name || prescription.formula?.englishName || "",
+          category: prescription.formula?.category || "",
+          composition: prescription.formula?.composition || [],
+          herbs: prescription.formula?.herbs || []
+        }
       });
     }
     
@@ -340,7 +350,7 @@ export default function PatientDetail() {
           <DialogHeader>
             <DialogTitle>
               {selectedPrescription?.formula?.pinyinName || (
-                selectedPrescription?.customFormula ? "Fórmula Personalizada" : "Detalles de la Prescripción"
+                selectedPrescription?.custom_formula ? "Fórmula Personalizada" : "Detalles de la Prescripción"
               )}
             </DialogTitle>
             <DialogDescription>

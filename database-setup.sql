@@ -85,13 +85,16 @@ CREATE TABLE IF NOT EXISTS patients (
 CREATE TABLE IF NOT EXISTS prescriptions (
   id SERIAL PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  patient_id INTEGER NOT NULL REFERENCES patients(id),
-  formula_id INTEGER REFERENCES formulas(id),
+  patient_id INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  formula_id INTEGER REFERENCES formulas(id) ON DELETE SET NULL,
   custom_formula JSONB,
   name TEXT,
   date_created TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   notes TEXT,
-  status TEXT,
+  status TEXT DEFAULT 'active',
+  diagnosis TEXT,
+  instructions TEXT,
+  duration TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

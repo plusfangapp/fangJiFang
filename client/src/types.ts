@@ -1,5 +1,8 @@
 export * from './types/index'
 
+// Import required types
+import { Herb, Formula, FormulaWithHerbs } from './types/index'
+
 // Elementos de una prescripción
 export interface PrescriptionItem {
   id: number;
@@ -19,13 +22,16 @@ export interface HerbWithGrams extends Herb {
 export interface PrescriptionData {
   date: string;
   number: string;
+  name: string; // Add name field
   notes: string;
+  patientId?: number; // Add patientId field
   patientName: string;
   patientEmail?: string;
   patientPhone?: string;
   patientAddress?: string;
   instructions?: string;
   duration?: string;
+  customFormula?: any; // Add customFormula field
   medicalConditions: {
     custom: Array<{
       id: string;
@@ -35,7 +41,7 @@ export interface PrescriptionData {
   };
   medications: {
     custom: Array<{
-      id: string;
+      id: number;
       name: string;
       dosage: string;
       frequency: string;

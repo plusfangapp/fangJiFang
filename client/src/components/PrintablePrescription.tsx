@@ -106,12 +106,9 @@ export default function PrintablePrescription({ prescription, forwardedRef }: Pr
             </div>
           )}
 
-          
-
           {/* Formula section */}
           <h1 className="text-xl font-semibold mb-2 text-gray-800">Formula</h1>
           <div className="mb-6 bg-white border border-gray-100 rounded-md print:border-0 print:rounded-none">
-
             {prescription.items.length === 0 ? (
               <div className="flex items-center justify-center p-3 text-sm">
                 <p className="text-gray-500 italic">No items in this prescription.</p>
@@ -130,76 +127,225 @@ export default function PrintablePrescription({ prescription, forwardedRef }: Pr
                             <Circle className="h-2 w-2 mr-2 text-yellow-500 fill-yellow-50/50" />
                             <div>
                               <div className="flex items-center">
-                                <p className="font-medium">{item.formula.pinyinName || item.formula.englishName}</p>
+                                <p className="font-medium">{item.formula.pinyin_name || item.formula.english_name || item.formula.pinyinName || item.formula.englishName}</p>
                                 <span className="ml-2 font-semibold text-gray-700">
                                   {item.quantity}g
                                 </span>
                               </div>
                               <p className="text-sm text-muted-foreground">
-                                {item.formula.englishName}
+                                {item.formula.english_name || item.formula.englishName || item.formula.chinese_name || item.formula.chineseName}
                               </p>
                             </div>
                           </div>
                         </div>
 
-                        {/* Visualizar las hierbas de la fórmula */}
-                        {item.formula.composition ? (
-                          <div className="mt-2 ml-6 pl-2 border-l-2 border-gray-100">
-                            <div className="space-y-1">
-                              {(() => {
-                                try {
-                                  let herbComponents;
+                                                 {/* Display formula composition - prioritize herb composition over actions/research */}
+                         {(() => {
+                           try {
+                             // First, try to get herb composition from the original formula
+                             let herbComposition = null;
+                             
+                             // Check if we have composition in the formula object
+                             if (item.formula.composition) {
+                               try {
+                                 const composition = typeof item.formula.composition === 'string' 
+                                   ? JSON.parse(item.formula.composition) 
+                                   : item.formula.composition;
+                                 
+                                 if (Array.isArray(composition)) {
+                                   herbComposition = composition;
+                                 } else if (composition && Array.isArray(composition.herbs)) {
+                                   herbComposition = composition.herbs;
+                                 }
+                               } catch (e) {
+                                 console.error("Error parsing formula composition:", e);
+                               }
+                             }
+                             
+                             // If no composition found, try customFormula
+                             if (!herbComposition) {
+                               const customFormula = prescription.customFormula || item.formula.customFormula;
+                               if (customFormula) {
+                                 const formula = typeof customFormula === 'string' ? JSON.parse(customFormula) : customFormula;
+                                 if (formula.herbs && Array.isArray(formula.herbs)) {
+                                   herbComposition = formula.herbs;
+                                 }
+                               }
+                             }
+                             
+                             // Display herb composition if available
+                             if (herbComposition && herbComposition.length > 0) {
+                               return (
+                                 <div className="mt-3 ml-6 pl-2 border-l-2 border-gray-100">
+                                   <h4 className="text-sm font-semibold text-gray-700 mb-2">Composition:</h4>
+                                   <div className="space-y-2">
+                                     {herbComposition.map((herb: any, idx: number) => {
+                                       const percentage = herb.percentage || 0;
+                                       const grams = herb.grams || Math.round((percentage * item.quantity / 100) * 10) / 10;
+                                       
+                                       return (
+                                         <div key={`herb-${idx}`} className="text-xs">
+                                           <div className="font-medium text-blue-600">
+                                             {herb.herb || herb.pinyinName || herb.name || herb.pinyin_name || herb.chineseName || "Hierba sin nombre"}
+                                           </div>
+                                           <div className="text-gray-500 flex items-center gap-2">
+                                             <span>{Math.round(percentage)}%</span>
+                                             <span className="font-bold">{grams}g</span>
+                                           </div>
+                                         </div>
+                                       );
+                                     })}
+                                   </div>
+                                 </div>
+                               );
+                             }
+                             
+                             // If no herb composition, show actions/research from customFormula
+                             const customFormula = prescription.customFormula || item.formula.customFormula;
+                             if (customFormula) {
+                               const formula = typeof customFormula === 'string' ? JSON.parse(customFormula) : customFormula;
+                               
+                               return (
+                                 <div className="mt-3 ml-6 pl-2 border-l-2 border-gray-100 space-y-3">
+                                   {/* Actions */}
+                                   {formula.actions && Array.isArray(formula.actions) && formula.actions.length > 0 && (
+                                     <div>
+                                       <h4 className="text-sm font-semibold text-gray-700 mb-1">Actions:</h4>
+                                       <div className="space-y-1">
+                                         {formula.actions.map((action: string, idx: number) => (
+                                           <div key={idx} className="text-xs text-gray-600 flex items-start">
+                                             <span className="text-blue-500 mr-1">•</span>
+                                             <span>{action}</span>
+                                           </div>
+                                         ))}
+                                       </div>
+                                     </div>
+                                   )}
 
-                                  if (typeof item.formula.composition === 'string') {
-                                    herbComponents = JSON.parse(item.formula.composition);
-                                  } else if (Array.isArray(item.formula.composition)) {
-                                    herbComponents = item.formula.composition;
-                                  } else if (item.formula.composition && 'herbs' in item.formula.composition && Array.isArray(item.formula.composition.herbs)) {
-                                    herbComponents = item.formula.composition.herbs;
-                                  } else {
-                                    return <p className="text-sm italic">Formato de composición no válido</p>;
-                                  }
+                                   {/* Indications */}
+                                   {formula.indications && (
+                                     <div>
+                                       <h4 className="text-sm font-semibold text-gray-700 mb-1">Indications:</h4>
+                                       <div className="text-xs text-gray-600">
+                                         {typeof formula.indications === 'string' ? (
+                                           <span>{formula.indications}</span>
+                                         ) : Array.isArray(formula.indications) ? (
+                                           <div className="space-y-1">
+                                             {formula.indications.map((indication: string, idx: number) => (
+                                               <div key={idx} className="flex items-start">
+                                                 <span className="text-green-500 mr-1">•</span>
+                                                 <span>{indication}</span>
+                                               </div>
+                                             ))}
+                                           </div>
+                                         ) : (
+                                           <span>{JSON.stringify(formula.indications)}</span>
+                                         )}
+                                       </div>
+                                     </div>
+                                   )}
 
-                                  const herbs = Array.isArray(herbComponents.herbs) ? herbComponents.herbs : 
-                                             Array.isArray(herbComponents) ? herbComponents : [];
+                                   {/* Clinical Applications */}
+                                   {formula.clinicalApplications && (
+                                     <div>
+                                       <h4 className="text-sm font-semibold text-gray-700 mb-1">Clinical Applications:</h4>
+                                       <div className="text-xs text-gray-600">
+                                         {typeof formula.clinicalApplications === 'string' ? (
+                                           <span>{formula.clinicalApplications}</span>
+                                         ) : Array.isArray(formula.clinicalApplications) ? (
+                                           <div className="space-y-1">
+                                             {formula.clinicalApplications.map((app: string, idx: number) => (
+                                               <div key={idx} className="flex items-start">
+                                                 <span className="text-purple-500 mr-1">•</span>
+                                                 <span>{app}</span>
+                                               </div>
+                                             ))}
+                                           </div>
+                                         ) : (
+                                           <span>{JSON.stringify(formula.clinicalApplications)}</span>
+                                         )}
+                                       </div>
+                                     </div>
+                                   )}
 
-                                  if (herbs.length > 0) {
-                                    return herbs.map((herb: any, idx: number) => {
-                                      let percentage = 0;
-                                      if (herb.percentage) {
-                                        percentage = parseFloat(herb.percentage);
-                                      } else if (herb.dosage && typeof herb.dosage === 'string') {
-                                        const dosageStr = herb.dosage.replace('%', '');
-                                        percentage = parseFloat(dosageStr);
-                                      }
+                                   {/* Contraindications */}
+                                   {formula.contraindications && (
+                                     <div>
+                                       <h4 className="text-sm font-semibold text-gray-700 mb-1">Contraindications:</h4>
+                                       <div className="text-xs text-gray-600">
+                                         {typeof formula.contraindications === 'string' ? (
+                                           <span>{formula.contraindications}</span>
+                                         ) : Array.isArray(formula.contraindications) ? (
+                                           <div className="space-y-1">
+                                             {formula.contraindications.map((contra: string, idx: number) => (
+                                               <div key={idx} className="flex items-start">
+                                                 <span className="text-red-500 mr-1">•</span>
+                                                 <span>{contra}</span>
+                                               </div>
+                                             ))}
+                                           </div>
+                                         ) : (
+                                           <span>{JSON.stringify(formula.contraindications)}</span>
+                                         )}
+                                       </div>
+                                     </div>
+                                   )}
 
-                                      const actualGrams = herb.grams || Math.round((percentage * item.quantity / 100) * 10) / 10;
+                                   {/* Pharmacological Effects */}
+                                   {formula.pharmacologicalEffects && (
+                                     <div>
+                                       <h4 className="text-sm font-semibold text-gray-700 mb-1">Pharmacological Effects:</h4>
+                                       <div className="text-xs text-gray-600">
+                                         {typeof formula.pharmacologicalEffects === 'string' ? (
+                                           <span>{formula.pharmacologicalEffects}</span>
+                                         ) : Array.isArray(formula.pharmacologicalEffects) ? (
+                                           <div className="space-y-1">
+                                             {formula.pharmacologicalEffects.map((effect: string, idx: number) => (
+                                               <div key={idx} className="flex items-start">
+                                                 <span className="text-orange-500 mr-1">•</span>
+                                                 <span>{effect}</span>
+                                               </div>
+                                             ))}
+                                           </div>
+                                         ) : (
+                                           <span>{JSON.stringify(formula.pharmacologicalEffects)}</span>
+                                         )}
+                                       </div>
+                                     </div>
+                                   )}
 
-                                      return (
-                                        <div key={`herb-${idx}`} className="flex justify-between text-xs">
-                                          <div className="flex items-center gap-2">
-                                            
-                                            <span className="font-medium">
-                                              {herb.pinyinName || herb.herb || herb.herbName || herb.name || "Hierba sin nombre"}
-                                            </span>
-                                            <span className="text-gray-500 flex items-center gap-2">
-                                              {Math.round(percentage)}% <span className="font-bold">{actualGrams}g</span>
-                                            </span>
-                                          </div>
-                                        </div>
-                                      );
-                                    });
-                                  }
+                                   {/* Research */}
+                                   {formula.research && (
+                                     <div>
+                                       <h4 className="text-sm font-semibold text-gray-700 mb-1">Research:</h4>
+                                       <div className="text-xs text-gray-600">
+                                         <span>{formula.research}</span>
+                                       </div>
+                                     </div>
+                                   )}
 
-                                  return <p className="text-sm italic">No hay detalles de la composición</p>;
-                                } catch (error) {
-                                  console.error("Error al procesar la composición:", error);
-                                  return <p className="text-sm italic">Error al cargar la composición</p>;
-                                }
-                              })()}
-                            </div>
-                          </div>
-                        ) : null}
+                                   {/* Herb Drug Interactions */}
+                                   {formula.herbDrugInteractions && (
+                                     <div>
+                                       <h4 className="text-sm font-semibold text-gray-700 mb-1">Herb-Drug Interactions:</h4>
+                                       <div className="text-xs text-gray-600">
+                                         <span>{formula.herbDrugInteractions}</span>
+                                       </div>
+                                     </div>
+                                   )}
+                                 </div>
+                               );
+                             }
+                             
+                             // Fallback to composition display if no customFormula
+                             return null;
+                           } catch (error) {
+                             console.error("Error processing formula data:", error);
+                             return null;
+                           }
+                         })()}
+
+                        
                       </>
                     ) : item.type === 'herb' && item.herb ? (
                       <div className="flex items-center justify-between">
@@ -207,11 +353,11 @@ export default function PrintablePrescription({ prescription, forwardedRef }: Pr
                           <Circle className="h-2 w-2 mr-2 text-primary fill-primary-50/50" />
                           <div>
                             <div className="flex items-center">
-                              <p className="font-semibold text-gray-800">{item.herb.pinyinName}</p>
+                              <p className="font-semibold text-gray-800">{item.herb.pinyin_name || item.herb.pinyinName}</p>
                               <span className="ml-2 font-semibold text-gray-700">{item.quantity}g</span>
                             </div>
                             <p className="text-xs text-gray-600">
-                              {item.herb.latinName && <span className="italic">{item.herb.latinName}</span>}
+                              {(item.herb.latin_name || item.herb.latinName) && <span className="italic">{item.herb.latin_name || item.herb.latinName}</span>}
                             </p>
                           </div>
                         </div>
@@ -276,8 +422,7 @@ export default function PrintablePrescription({ prescription, forwardedRef }: Pr
             </p>
           </div>
         </div>
-
-        </div>
+      </div>
     </div>
   );
 }
