@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Herb, Formula, FormulaWithHerbs } from "@/types";
 import { HerbWithGrams } from "@/types";
 import clsx from "clsx";
+import { getFormulaDisplayName } from "@/lib/utils";
 
 const getNatureColor = (nature: string) => {
   const natureMap: {[key: string]: string} = {
@@ -554,7 +555,7 @@ export default function LibraryPanel({
                               <div className="w-full">
                                   <div className="flex items-center gap-2">
                                     <h4 className="font-medium text-gray-900">
-                                      {formula.pinyinName || formula.pinyin_name || 'Unknown Formula'}
+                                      {getFormulaDisplayName(formula)}
                                     </h4>
                                   </div>
                                   {(formula.englishName || formula.english_name) && (

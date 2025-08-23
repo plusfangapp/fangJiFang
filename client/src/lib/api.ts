@@ -143,16 +143,60 @@ export const herbsApi = {
 
     // Transform and clean the data before insertion
     const transformedHerbs = herbsData.map(herb => {
+      // Map camelCase field names to snake_case field names
       const transformed = {
-        ...herb,
-        user_id: user.id
+        user_id: user.id,
+        // Basic Information
+        pinyin_name: herb.pinyinName || herb.pinyin_name,
+        chinese_name: herb.chineseName || herb.chinese_name,
+        latin_name: herb.latinName || herb.latin_name,
+        english_name: herb.englishName || herb.english_name,
+        category: herb.category,
+        
+        // TCM Properties
+        nature: herb.nature,
+        flavor: herb.flavor,
+        toxicity: herb.toxicity,
+        meridians: herb.meridians,
+        
+        // Usage Information
+        dosage: herb.dosage,
+        preparation: herb.preparation,
+        
+        // Detailed Properties
+        primary_functions: herb.primaryFunctions || herb.primary_functions,
+        clinical_patterns: herb.clinicalPatterns || herb.clinical_patterns,
+        therapeutic_actions: herb.therapeuticActions || herb.therapeutic_actions,
+        tcm_actions: herb.tcmActions || herb.tcm_actions,
+        combinations: herb.combinations,
+        synergistic_pairs: herb.synergisticPairs || herb.synergistic_pairs,
+        antagonistic_pairs: herb.antagonisticPairs || herb.antagonistic_pairs,
+        
+        // Clinical Information
+        standard_indications: herb.standardIndications || herb.standard_indications,
+        special_indications: herb.specialIndications || herb.special_indications,
+        preparation_methods: herb.preparationMethods || herb.preparation_methods,
+        contraindications: herb.contraindications,
+        cautions: herb.cautions,
+        pregnancy_considerations: herb.pregnancyConsiderations || herb.pregnancy_considerations,
+        
+        // Research and Evidence
+        biological_effects: herb.biologicalEffects || herb.biological_effects,
+        clinical_evidence: herb.clinicalEvidence || herb.clinical_evidence,
+        herb_drug_interactions: herb.herbDrugInteractions || herb.herb_drug_interactions,
+        references_list: herb.referenceList || herb.references || herb.references_list,
+        
+        // Additional Information
+        properties: herb.properties,
+        notes: herb.notes,
+        functions: herb.functions,
+        applications: herb.applications,
+        secondary_actions: herb.secondaryActions || herb.secondary_actions,
+        common_combinations: herb.commonCombinations || herb.common_combinations,
+        pharmacological_effects: herb.pharmacologicalEffects || herb.pharmacological_effects,
+        laboratory_effects: herb.laboratoryEffects || herb.laboratory_effects,
+        clinical_studies_and_research: herb.clinicalStudiesAndResearch || herb.clinical_studies_and_research
       };
-
-      // Handle field transformations
-      if (transformed.references && !transformed.reference_list) {
-        transformed.reference_list = transformed.references;
-        delete transformed.references; // Remove the old field name
-      }
 
       // Ensure JSONB fields are properly formatted
       if (typeof transformed.contraindications === 'string') {
@@ -173,8 +217,8 @@ export const herbsApi = {
 
       // Remove any undefined or null values that might cause issues
       Object.keys(transformed).forEach(key => {
-        if (transformed[key] === undefined) {
-          delete transformed[key];
+        if ((transformed as any)[key] === undefined) {
+          delete (transformed as any)[key];
         }
       });
 
@@ -335,26 +379,85 @@ export const formulasApi = {
 
     // Transform the data to handle field mappings
     const transformedFormulas = formulasData.map(formula => {
-      const transformed = { ...formula };
-      
-      // Handle field transformations
-      if (transformed.references && !transformed.reference_list) {
-        transformed.reference_list = transformed.references;
-        delete transformed.references; // Remove the old field name
+      // Map camelCase field names to snake_case field names
+      const transformed = {
+        user_id: user.id,
+        // Basic Information
+        pinyin_name: formula.pinyinName || formula.pinyin_name,
+        chinese_name: formula.chineseName || formula.chinese_name || formula.pinyin_name || 'Unknown',
+        english_name: formula.englishName || formula.english_name,
+        category: formula.category,
+        
+        // Clinical Information
+        actions: formula.actions,
+        indications: formula.indications,
+        clinical_manifestations: formula.clinicalManifestations || formula.clinical_manifestations,
+        clinical_applications: formula.clinicalApplications || formula.clinical_applications,
+        contraindications: formula.contraindications,
+        cautions: formula.cautions,
+        
+        // Research and Effects
+        pharmacological_effects: formula.pharmacologicalEffects || formula.pharmacological_effects,
+        research: formula.research,
+        herb_drug_interactions: formula.herbDrugInteractions || formula.herb_drug_interactions,
+        references_list: formula.referenceList || formula.references || formula.references_list,
+        
+        // Composition
+        composition: formula.composition ? (Array.isArray(formula.composition) ? formula.composition.map((herb: any) => ({
+          herbId: herb.herbId || herb.herb_id || '',
+          pinyinName: herb.pinyinName || herb.pinyin_name || herb.name || '',
+          dosage: herb.dosage || '',
+          function: herb.function || '',
+          percentage: herb.percentage || '',
+          grams: herb.grams || '',
+          chineseName: herb.chineseName || herb.chinese_name || ''
+        })) : formula.composition) : []
+      };
+
+      // Ensure proper data types for specific fields
+      if (transformed.clinical_manifestations && Array.isArray(transformed.clinical_manifestations)) {
+        transformed.clinical_manifestations = transformed.clinical_manifestations.join('; ');
       }
+
+      if (transformed.clinical_applications && Array.isArray(transformed.clinical_applications)) {
+        transformed.clinical_applications = transformed.clinical_applications.join('; ');
+      }
+
+      if (transformed.pharmacological_effects && Array.isArray(transformed.pharmacological_effects)) {
+        transformed.pharmacological_effects = transformed.pharmacological_effects.join('; ');
+      }
+
+      if (transformed.herb_drug_interactions && Array.isArray(transformed.herb_drug_interactions)) {
+        transformed.herb_drug_interactions = transformed.herb_drug_interactions.join('; ');
+      }
+
+      // Ensure references_list is always an array
+      if (transformed.references_list && !Array.isArray(transformed.references_list)) {
+        transformed.references_list = [transformed.references_list];
+      }
+
+      // Ensure required fields have values
+      if (!transformed.pinyin_name) {
+        transformed.pinyin_name = 'Unknown Formula';
+      }
+      
+      if (!transformed.chinese_name) {
+        transformed.chinese_name = transformed.pinyin_name || 'Unknown';
+      }
+
+      // Remove any undefined or null values that might cause issues
+      Object.keys(transformed).forEach(key => {
+        if ((transformed as any)[key] === undefined) {
+          delete (transformed as any)[key];
+        }
+      });
       
       return transformed;
     });
 
-    // Add user_id to all formulas
-    const formulasWithUserId = transformedFormulas.map(formula => ({
-      ...formula,
-      user_id: user.id
-    }));
-
     const { data, error } = await supabase
       .from('formulas')
-      .insert(formulasWithUserId)
+      .insert(transformedFormulas)
       .select()
     
     if (error) throw error
@@ -465,8 +568,7 @@ export const prescriptionsApi = {
       .from('prescriptions')
       .select(`
         *,
-        patient:patients(name),
-        formula:formulas(pinyin_name, chinese_name)
+        patient:patients(name)
       `)
       .eq('user_id', user.id)
       .order('date_created', { ascending: false })
@@ -486,8 +588,7 @@ export const prescriptionsApi = {
       .from('prescriptions')
       .select(`
         *,
-        patient:patients(*),
-        formula:formulas(*)
+        patient:patients(*)
       `)
       .eq('id', id)
       .eq('user_id', user.id)
@@ -522,8 +623,7 @@ export const prescriptionsApi = {
       .insert(prescriptionData)
       .select(`
         *,
-        patient:patients(name),
-        formula:formulas(pinyin_name, chinese_name)
+        patient:patients(name)
       `)
       .single()
     
@@ -564,6 +664,24 @@ export const prescriptionsApi = {
       .eq('user_id', user.id)
     
     if (error) throw error
+  },
+
+  async getFormulaDetails(formulaId: number) {
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('formulas')
+      .select('*')
+      .eq('id', formulaId)
+      .eq('user_id', user.id)
+      .single()
+    
+    if (error) throw error
+    return data
   }
 }
 

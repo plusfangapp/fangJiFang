@@ -3,6 +3,7 @@ import { enUS } from "date-fns/locale";
 import { Circle } from "lucide-react";
 import { PrescriptionData } from "@/types";
 import React, { useEffect } from "react";
+import { getFormulaDisplayName } from "@/lib/utils";
 
 interface PrintablePrescriptionProps {
   prescription: PrescriptionData;
@@ -127,7 +128,7 @@ export default function PrintablePrescription({ prescription, forwardedRef }: Pr
                             <Circle className="h-2 w-2 mr-2 text-yellow-500 fill-yellow-50/50" />
                             <div>
                               <div className="flex items-center">
-                                <p className="font-medium">{item.formula.pinyin_name || item.formula.english_name || item.formula.pinyinName || item.formula.englishName}</p>
+                                <p className="font-medium">{getFormulaDisplayName(item.formula)}</p>
                                 <span className="ml-2 font-semibold text-gray-700">
                                   {item.quantity}g
                                 </span>

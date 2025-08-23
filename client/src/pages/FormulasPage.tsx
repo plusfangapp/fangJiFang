@@ -49,6 +49,7 @@ import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 import { Formula } from "@/types";
 import { useLanguage } from "@/lib/language-context";
+import { getFormulaDisplayName } from "@/lib/utils";
 
 export default function FormulasPage() {
   const { t } = useLanguage();
@@ -408,7 +409,7 @@ export default function FormulasPage() {
                               <div className="flex items-center gap-1.5">
                                 <div>
                                   <h3 className={`font-medium truncate ${isWindColdFormula ? 'text-blue-600' : 'text-gray-900'}`}>
-                                    {formula.pinyin_name}
+                                    {getFormulaDisplayName(formula)}
                                   </h3>
                                   {formula.english_name && (
                                     <div className="text-xs text-gray-400 italic truncate">
@@ -480,7 +481,7 @@ export default function FormulasPage() {
               <DialogTitle className="flex flex-col sm:flex-row sm:items-start gap-2">
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-4">
-                    <span className="text-xl font-bold">{previewFormula.pinyin_name}</span>
+                    <span className="text-xl font-bold">{getFormulaDisplayName(previewFormula)}</span>
                     <div className="flex items-center gap-2">
                       {previewFormula.english_name && (
                         <span className="text-sm italic text-gray-500 font-medium">
@@ -515,7 +516,7 @@ export default function FormulasPage() {
                               title={herb.nature || 'Nature not specified'}
                             />
                             <div className="font-medium text-sm text-gray-900">
-                              {herb.herb}
+                              {herb.pinyinName}
                               <span className="ml-1 text-gray-500">{herb.dosage || ''}</span>
                             </div>
                           </div>

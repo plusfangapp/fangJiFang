@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import ChipDisplay from "@/components/ChipDisplay";
 import { FormulaWithHerbs } from "@/types";
+import { getFormulaDisplayName } from "@/lib/utils";
 
 interface FormulaPreviewProps {
   formula: any; // Usando any para evitar problemas de tipado con el schema
@@ -34,8 +35,13 @@ const FormulaPreview: React.FC<FormulaPreviewProps> = ({
           <DialogTitle className="flex flex-col sm:flex-row sm:items-center gap-2 pr-8">
             <div className="flex flex-col sm:flex-row sm:items-center flex-grow">
               <div className="flex items-center flex-wrap">
-                <span className="text-xl font-bold mr-2">{formula.pinyin_name}</span>
-                {/* Chinese name hidden as requested */}
+                <span className="text-xl font-bold mr-2">{getFormulaDisplayName(formula)}</span>
+                {/* Show Chinese name if different from display name */}
+                {formula.chinese_name && 
+                 formula.chinese_name !== "Unknown" && 
+                 formula.chinese_name !== getFormulaDisplayName(formula) && (
+                  <span className="text-lg text-gray-600 ml-2">({formula.chinese_name})</span>
+                )}
               </div>
               {formula.english_name && (
                 <span className="text-sm italic text-gray-500 font-medium sm:ml-2 mt-1 sm:mt-0">
@@ -62,9 +68,18 @@ const FormulaPreview: React.FC<FormulaPreviewProps> = ({
               ))?.map((herb: any, index: number) => (
                 <div key={index} className="p-2 bg-muted/20 rounded-md">
                   <div className="flex justify-between items-center">
-                    <div className="font-medium text-sm">{herb.herb}</div>
-                    <div className="text-xs text-gray-500 ml-2">{herb.dosage || ''}</div>
+                    <div className="font-medium text-sm">
+                      {herb.pinyinName || herb.pinyin_name || herb.name || herb.herb || 'Unknown Herb'}
+                    </div>
+                    <div className="text-xs text-gray-500 ml-2">
+                      {herb.dosage || herb.percentage || ''}
+                    </div>
                   </div>
+                  {herb.chineseName && herb.chineseName !== '' && (
+                    <div className="text-xs text-gray-600 mt-1">
+                      {herb.chineseName}
+                    </div>
+                  )}
                 </div>
               )) || (
                 <div className="text-sm text-gray-500 italic">No composition information available</div>

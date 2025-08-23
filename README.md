@@ -1,166 +1,195 @@
-# FangJiFang - Traditional Chinese Medicine Application
+# TCM Prescription Management System
 
-A modern web application for managing Traditional Chinese Medicine (TCM) herbs, formulas, patients, and prescriptions. Built with React, TypeScript, Tailwind CSS, and Supabase.
+A comprehensive Traditional Chinese Medicine (TCM) prescription management system built with React, TypeScript, and Supabase.
 
 ## 🚀 Features
 
-- **Herbs Management**: Comprehensive database of TCM herbs with detailed properties
-- **Formulas Management**: TCM formulas and recipes with composition tracking
-- **Patient Management**: Patient records and medical history
-- **Prescription Builder**: Create and manage patient prescriptions
-- **Modern UI**: Beautiful, responsive interface built with Radix UI components
-- **Real-time Database**: Powered by Supabase for reliable data storage
+- **Herb Management**: Complete herb database with TCM properties, actions, and clinical information
+- **Formula Management**: TCM formulas with herb composition and detailed clinical data
+- **Patient Management**: Patient records with medical history and medication tracking
+- **Prescription Builder**: Create and manage prescriptions with custom formulas
+- **User Authentication**: Secure user authentication with Supabase Auth
+- **Data Import/Export**: Bulk import herbs and formulas from JSON files
+- **PDF Generation**: Generate printable prescriptions
+- **Responsive Design**: Modern UI that works on desktop and mobile
 
 ## 🛠️ Tech Stack
 
 - **Frontend**: React 18, TypeScript, Vite
-- **UI Components**: Radix UI, Tailwind CSS
-- **Database**: Supabase (PostgreSQL)
-- **State Management**: TanStack Query
-- **Deployment**: Vercel
-
-## 📦 Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone <your-repo-url>
-   cd fangJiFang
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**:
-   Create a `.env` file in the `client` directory:
-   ```
-   VITE_SUPABASE_URL=https://ueoyqnnlpdjdmhkxyuik.supabase.co
-   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlb3lxbm5scGRqZG1oa3h5dWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNTA3ODAsImV4cCI6MjA2OTgyNjc4MH0.sc5U33ZUGbnfN99fWM1UgsXxFoJnHOQlfC0lZu-BiCM
-   ```
-
-4. **Set up database**:
-   - Go to your [Supabase Dashboard](https://supabase.com/dashboard)
-   - Navigate to SQL Editor
-   - Run the SQL commands from `database-setup.sql`
-
-5. **Start development server**:
-   ```bash
-   npm run dev
-   ```
-
-The application will be available at `http://localhost:5173`
-
-## 🗄️ Database Schema
-
-The application uses the following tables:
-
-- **herbs**: TCM herbs with detailed properties and classifications
-- **formulas**: TCM formulas and recipes
-- **patients**: Patient information and medical history
-- **prescriptions**: Patient prescriptions linking herbs and formulas
-- **users**: User accounts and authentication
-
-## 🚀 Deployment
-
-### Deploy to Vercel
-
-1. **Push your code to GitHub**
-
-2. **Connect to Vercel**:
-   - Go to [vercel.com](https://vercel.com)
-   - Click "New Project"
-   - Import your GitHub repository
-   - Vercel will automatically detect the Vite configuration
-
-3. **Configure Environment Variables**:
-   - Add the Supabase environment variables in Vercel dashboard
-   - Or they're already configured in `vercel.json`
-
-4. **Deploy**:
-   - Click "Deploy"
-   - Your app will be live at the provided URL
-
-### Manual Deployment
-
-```bash
-# Build the project
-npm run build
-
-# Deploy using Vercel CLI
-npm i -g vercel
-vercel
-```
+- **UI Components**: Shadcn/ui, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Auth, Storage)
+- **State Management**: TanStack Query (React Query)
+- **Routing**: Wouter
+- **Forms**: React Hook Form with Zod validation
+- **PDF Generation**: jsPDF, react-to-print
 
 ## 📁 Project Structure
 
 ```
 fangJiFang/
-├── client/
+├── client/                          # Frontend application
 │   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── lib/
-│   │   │   ├── supabase.ts # Supabase configuration
-│   │   │   └── api.ts      # API functions
-│   │   ├── pages/          # Page components
-│   │   └── types/          # TypeScript types
+│   │   ├── components/              # Reusable UI components
+│   │   │   ├── ui/                  # Shadcn/ui components
+│   │   │   └── ...                  # Custom components
+│   │   ├── pages/                   # Application pages
+│   │   ├── hooks/                   # Custom React hooks
+│   │   ├── lib/                     # Utilities and API clients
+│   │   ├── types/                   # TypeScript type definitions
+│   │   └── main.tsx                 # Application entry point
 │   └── index.html
-├── package.json
-├── vite.config.ts
-├── vercel.json
-├── database-setup.sql
-└── DEPLOYMENT.md
+├── COMPLETE_DATABASE_SCHEMA.sql     # Complete database schema
+├── package.json                     # Dependencies and scripts
+├── tailwind.config.ts              # Tailwind CSS configuration
+├── tsconfig.json                   # TypeScript configuration
+└── README.md                       # This file
 ```
 
-## 🔧 Available Scripts
+## 🗄️ Database Schema
+
+The system uses a comprehensive PostgreSQL schema with the following main tables:
+
+- **herbs**: TCM herbs with detailed properties and clinical information
+- **formulas**: TCM formulas with herb composition and clinical data
+- **patients**: Patient records and medical history
+- **prescriptions**: Prescriptions with formula references and custom formulas
+- **users**: User profile information
+
+### Key Features:
+- ✅ Row Level Security (RLS) for data isolation
+- ✅ Automatic timestamps and triggers
+- ✅ Performance-optimized indexes
+- ✅ Data validation functions
+- ✅ Utility functions for common operations
+- ✅ Proper foreign key constraints
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd fangJiFang
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up Supabase**
+   - Create a new Supabase project
+   - Run the `COMPLETE_DATABASE_SCHEMA.sql` script in your Supabase SQL editor
+   - Copy your Supabase URL and anon key
+
+4. **Configure environment variables**
+   Create a `.env` file in the client directory:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+## 📊 Database Setup
+
+1. **Run the complete schema script**
+   - Open your Supabase SQL editor
+   - Copy and paste the entire content of `COMPLETE_DATABASE_SCHEMA.sql`
+   - Execute the script
+
+2. **Verify the setup**
+   The script includes verification queries (commented out) that you can run to ensure everything is set up correctly.
+
+## 🔧 Development
+
+### Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
-- `npm run check` - Type checking
-- `npm run setup:db` - Database setup (requires manual SQL execution)
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-## 🎨 UI Components
+### Code Structure
 
-The application uses a comprehensive set of UI components from Radix UI:
+- **Components**: Reusable UI components in `client/src/components/`
+- **Pages**: Application pages in `client/src/pages/`
+- **API**: Supabase client and API functions in `client/src/lib/`
+- **Types**: TypeScript definitions in `client/src/types/`
 
-- **Navigation**: Sidebar, breadcrumbs, menus
-- **Forms**: Inputs, selects, checkboxes, radio groups
-- **Feedback**: Toasts, alerts, dialogs
-- **Data Display**: Tables, cards, badges
-- **Layout**: Accordions, tabs, collapsible panels
+## 📝 Usage
 
-## 🔐 Security
+### Managing Herbs
+- Add new herbs with comprehensive TCM properties
+- Import herbs from JSON files
+- Search and filter herbs by category and properties
 
-- Row Level Security (RLS) enabled on all tables
-- Public read access for demo purposes
-- Authentication-ready for production use
-- Environment variables for sensitive data
+### Managing Formulas
+- Create TCM formulas with herb composition
+- Set clinical applications and pharmacological effects
+- Import formulas from JSON files
 
-## 📚 API Functions
+### Creating Prescriptions
+- Select patients and formulas
+- Build custom prescriptions with individual herbs
+- Generate printable PDF prescriptions
 
-The `client/src/lib/api.ts` file contains all the API functions:
+## 🔒 Security
 
-- `herbsApi` - CRUD operations for herbs
-- `formulasApi` - CRUD operations for formulas
-- `patientsApi` - CRUD operations for patients
-- `prescriptionsApi` - CRUD operations for prescriptions
-- `usersApi` - CRUD operations for users
+- Row Level Security (RLS) ensures users can only access their own data
+- Supabase Auth provides secure authentication
+- All API calls are authenticated and validated
+
+## 📱 Features
+
+### Herb Management
+- ✅ Complete herb database with TCM properties
+- ✅ Clinical patterns and therapeutic actions
+- ✅ Research and evidence data
+- ✅ Import/export functionality
+
+### Formula Management
+- ✅ TCM formulas with herb composition
+- ✅ Clinical applications and indications
+- ✅ Pharmacological effects and research
+- ✅ Bulk import from JSON
+
+### Prescription System
+- ✅ Patient management
+- ✅ Formula and herb selection
+- ✅ Custom prescription builder
+- ✅ PDF generation
+- ✅ Prescription history
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Submit a pull request
+4. Add tests if applicable
+5. Submit a pull request
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+This project is licensed under the MIT License.
 
 ## 🆘 Support
 
-For support, please open an issue in the GitHub repository or contact the development team.
+For support and questions:
+- Check the documentation in the code comments
+- Review the database schema in `COMPLETE_DATABASE_SCHEMA.sql`
+- Open an issue for bugs or feature requests
 
 ---
 
-**Built with ❤️ for Traditional Chinese Medicine practitioners and enthusiasts**
+**Built with ❤️ for Traditional Chinese Medicine practitioners**

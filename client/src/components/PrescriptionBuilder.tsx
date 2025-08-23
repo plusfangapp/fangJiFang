@@ -401,7 +401,7 @@ export default function PrescriptionBuilder({
                                             <div key={`component-${idx}`} className="flex justify-between text-xs">
                                               <div className="flex items-center gap-2">
                                                 <span className="font-medium">
-                                                  {component.herb || component.name || component.herbName || "Componente"}
+                                                  {component.pinyinName || component.pinyin_name || component.herb || component.name || component.herbName || "Componente"}
                                                 </span>
                                                 <span className="text-gray-500 flex items-center gap-2">
                                                   {component.dosage || (percentValue ? `${percentValue}%` : '')}
